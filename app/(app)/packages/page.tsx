@@ -6,6 +6,7 @@ import {
   Package, Plus, Trash2, Pencil, X, Check, ChevronDown, ChevronUp,
   CalendarClock, Boxes, ShieldAlert, Timer, ShieldCheck, Clock4
 } from "lucide-react"
+import { useT } from "@/lib/i18n/context"
 
 // ── Types ─────────────────────────────────────────────────────────────────
 interface MedPackage {
@@ -50,6 +51,7 @@ function PackageModal({
   editPkg?: MedPackage | null
   patientMeds: PatientMed[]
 }) {
+  const { t } = useT()
   const [form, setForm] = useState({
     patientMedicationId: editPkg?.patientMedicationId ?? (patientMeds[0]?.id ?? ""),
     expiryDate:          editPkg ? format(new Date(editPkg.expiryDate), "yyyy-MM-dd") : "",
@@ -92,7 +94,7 @@ function PackageModal({
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-100">
               <Package className="h-4 w-4 text-violet-600" />
             </div>
-            <p className="font-semibold text-slate-900">{editPkg ? "Edit Package" : "Add Package"}</p>
+            <p className="font-semibold text-slate-900">{editPkg ? t.packages.editPackage : t.packages.addPackage}</p>
           </div>
           <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-slate-100">
             <X className="h-4 w-4 text-slate-500" />
@@ -105,7 +107,7 @@ function PackageModal({
 
           {/* Medication selector */}
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Medication</label>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t.packages.medication}</label>
             <select
               className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
               value={form.patientMedicationId}
@@ -123,7 +125,7 @@ function PackageModal({
           {/* Expiry date + quantity */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Expiry Date *</label>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t.packages.expiryDate} *</label>
               <input type="date"
                 className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
                 value={form.expiryDate}
@@ -144,8 +146,8 @@ function PackageModal({
 
           {/* Lot number */}
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Lot / Batch Number</label>
-            <input type="text" placeholder="e.g. LOT-2024-AB123"
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t.packages.lotNumber}</label>
+            <input type="text" placeholder={t.packages.lotPlaceholder}
               className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
               value={form.lotNumber}
               onChange={e => setForm(f => ({ ...f, lotNumber: e.target.value }))}
@@ -155,8 +157,8 @@ function PackageModal({
           {/* Opened toggle */}
           <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3">
             <div>
-              <p className="text-sm font-semibold text-slate-800">Package opened</p>
-              <p className="text-xs text-slate-500">Mark if the package or bottle is already open</p>
+              <p className="text-sm font-semibold text-slate-800">{t.packages.opened}</p>
+              <p className="text-xs text-slate-500">{t.packages.openedDesc}</p>
             </div>
             <button onClick={() => setForm(f => ({ ...f, opened: !f.opened }))}
               className={`relative h-6 w-11 rounded-full transition-colors duration-200 ${form.opened ? "bg-violet-600" : "bg-slate-300"}`}>
@@ -166,8 +168,8 @@ function PackageModal({
 
           {/* Notes */}
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Notes</label>
-            <textarea rows={2} placeholder="Optional notes..."
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t.common.notes}</label>
+            <textarea rows={2} placeholder={t.common.optional + "..."}
               className="w-full resize-none rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
               value={form.notes}
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
@@ -178,11 +180,13 @@ function PackageModal({
         {/* Footer */}
         <div className="flex items-center justify-end gap-2 border-t border-slate-100 px-6 py-4">
           <button onClick={onClose} className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100">
-            Cancel
+            {t.common.cancel}
           </button>
           <button onClick={save} disabled={saving}
             className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-px hover:bg-blue-700 disabled:opacity-60">
-            {saving ? <><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white"/>Saving...</> : <><Check className="h-3.5 w-3.5"/>{editPkg ? "Update" : "Add Package"}</>}
+            {saving
+              ? <><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white"/>{t.common.saving}</>
+              : <><Check className="h-3.5 w-3.5"/>{editPkg ? t.common.save : t.packages.addPackage}</>}
           </button>
         </div>
       </div>
@@ -201,6 +205,7 @@ export default function PackagesPage() {
   const [expandedPm,  setExpandedPm]  = useState<string | null>(null)
   const [alertDays,   setAlertDays]   = useState(30)
   const [deleting,    setDeleting]    = useState<string | null>(null)
+  const { t } = useT()
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -279,22 +284,22 @@ export default function PackagesPage() {
       {/* ── Header ── */}
       <div className="dashboard-surface flex items-center justify-between p-5">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Packages</h1>
-          <p className="mt-1 text-sm font-medium text-slate-500">Track expiry dates across all medication packages</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{t.packages.title}</h1>
+          <p className="mt-1 text-sm font-medium text-slate-500">{t.packages.subtitle}</p>
         </div>
         <button onClick={() => { setEditTarget(null); setModal("add") }}
           className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_24px_-12px_rgba(109,40,217,0.7)] transition-all hover:-translate-y-px hover:shadow-[0_16px_28px_-12px_rgba(109,40,217,0.75)]">
-          <Plus className="h-4 w-4" /> Add Package
+          <Plus className="h-4 w-4" /> {t.packages.addPackage}
         </button>
       </div>
 
       {/* ── KPI strip ── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { key: "expired",  label: "Expired",       value: expiredCount,  gradient: "from-red-500 to-rose-600",     accent: "text-red-700",    icon: ShieldAlert },
-          { key: "critical", label: "Critical (<7d)", value: criticalCount, gradient: "from-red-400 to-orange-500",   accent: "text-orange-700", icon: Clock4 },
-          { key: "warning",  label: `Warning (<${alertDays}d)`, value: warningCount, gradient: "from-amber-400 to-yellow-500", accent: "text-amber-700", icon: Timer },
-          { key: "good",     label: "Good",           value: goodCount,     gradient: "from-emerald-500 to-teal-600", accent: "text-emerald-700",icon: ShieldCheck },
+          { key: "expired",  label: t.packages.expired,          value: expiredCount,  gradient: "from-red-500 to-rose-600",     accent: "text-red-700",    icon: ShieldAlert },
+          { key: "critical", label: t.packages.criticalLabel,     value: criticalCount, gradient: "from-red-400 to-orange-500",   accent: "text-orange-700", icon: Clock4 },
+          { key: "warning",  label: `${t.packages.warningLabel} (<${alertDays}d)`, value: warningCount, gradient: "from-amber-400 to-yellow-500", accent: "text-amber-700", icon: Timer },
+          { key: "good",     label: t.packages.goodLabel,         value: goodCount,     gradient: "from-emerald-500 to-teal-600", accent: "text-emerald-700",icon: ShieldCheck },
         ].map(kpi => (
           <button key={kpi.key}
             onClick={() => setFilter(f => f === kpi.key ? "all" : kpi.key as typeof filter)}
@@ -332,8 +337,8 @@ export default function PackagesPage() {
               </p>
               <p className="mt-0.5 text-xs font-medium" style={{ color: s.color }}>
                 {s.key === "expired"
-                  ? `Expired ${Math.abs(s.days)} day${Math.abs(s.days) !== 1 ? "s" : ""} ago — dispose immediately`
-                  : `Expires in ${s.days} day${s.days !== 1 ? "s" : ""} — ${format(new Date(nextExpiry.expiryDate), "dd MMM yyyy")}`}
+                  ? `${t.packages.expired} ${Math.abs(s.days)} ${t.common.daysAgo} — ${t.packages.disposeNow}`
+                  : `${t.packages.expiresIn} ${s.days} ${t.common.days} — ${format(new Date(nextExpiry.expiryDate), "dd MMM yyyy")}`}
               </p>
             </div>
             <CalendarClock className="h-5 w-5 shrink-0" style={{ color: s.color }}/>
@@ -347,7 +352,7 @@ export default function PackagesPage() {
           {(["all","expired","critical","warning","good"] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className={`flex-1 rounded-[10px] px-3 py-1.5 font-semibold capitalize transition-all ${filter === f ? "bg-white text-slate-900 shadow-[0_4px_12px_-6px_rgba(15,23,42,0.35)]" : "text-slate-500 hover:text-slate-700"}`}>
-              {f === "all" ? `All (${packages.length})` : f}
+              {f === "all" ? `${t.packages.filterAll} (${packages.length})` : f}
             </button>
           ))}
         </div>
@@ -363,8 +368,8 @@ export default function PackagesPage() {
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50">
             <Boxes className="h-7 w-7 text-violet-300" />
           </div>
-          <p className="font-semibold text-slate-700">No packages found</p>
-          <p className="mt-1 text-xs text-slate-500">Add a package using the button above</p>
+          <p className="font-semibold text-slate-700">{t.packages.noPackages}</p>
+          <p className="mt-1 text-xs text-slate-500">{t.packages.noPackagesHint}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -414,7 +419,7 @@ export default function PackagesPage() {
                                 {s.key === "expired" ? "EXP" : s.days}
                               </p>
                               <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-500">
-                                {s.key === "expired" ? "days ago" : "days left"}
+                                {s.key === "expired" ? t.common.daysAgo : t.common.daysLeft}
                               </p>
                             </div>
 

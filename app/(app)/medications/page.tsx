@@ -5,6 +5,7 @@ import { Search, Pill, Wind, Droplets, Syringe, Zap, Package, FlaskConical, User
 import { Input } from "@/components/ui/input"
 import { parseJsonArray, unitLabel, getFrequencyLabel } from "@/lib/calculations"
 import { useToast } from "@/hooks/use-toast"
+import { useT } from "@/lib/i18n/context"
 
 // ── same theme map as patient detail page ──────────────────────────────────
 const UNIT_THEME: Record<string, {
@@ -58,6 +59,7 @@ export default function MedicationsPage() {
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState<string | null>(null)
   const { toast } = useToast()
+  const { t } = useT()
 
   const fetchMeds = () => {
     setLoading(true)
@@ -97,15 +99,15 @@ export default function MedicationsPage() {
       {/* ── Header ── */}
       <div className="dashboard-surface flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Medications</h1>
-          <p className="mt-1 text-sm font-medium text-slate-500">{meds.length} in catalog</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{t.medications.title}</h1>
+          <p className="mt-1 text-sm font-medium text-slate-500">{meds.length} {t.medications.subtitle.toLowerCase()}</p>
         </div>
 
         {/* ── Search ── */}
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
-            placeholder="Search by name, brand or generic..."
+            placeholder={t.medications.searchMeds}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="h-11 rounded-xl border-slate-200 bg-white pl-9 text-slate-700 shadow-sm"
@@ -125,7 +127,7 @@ export default function MedicationsPage() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
             <Pill className="h-8 w-8 opacity-30" />
           </div>
-          <p className="font-medium">No medications found</p>
+          <p className="font-medium">{t.medications.noMeds}</p>
           <p className="mt-1 text-sm">Medications appear here once added to a patient</p>
         </div>
       ) : (

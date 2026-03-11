@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import { getFrequencyLabel, parseJsonArray } from "@/lib/calculations"
 import { format, startOfWeek, addDays, isSameDay, subWeeks, addWeeks } from "date-fns"
+import { useT } from "@/lib/i18n/context"
 
 const UNIT_THEME: Record<string, { bg: string; text: string; border: string; icon: React.ElementType }> = {
   pill:       { bg: "bg-violet-50", text: "text-violet-700", border: "border-violet-200", icon: Pill },
@@ -31,6 +32,7 @@ export default function SchedulesPage() {
   const [schedules, setSchedules] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [weekOffset, setWeekOffset] = useState(0)
+  const { t } = useT()
 
   useEffect(() => {
     fetch("/api/schedules")
@@ -71,8 +73,8 @@ export default function SchedulesPage() {
 
       {/* ── Header ── */}
       <div className="dashboard-surface p-5">
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Schedules</h1>
-        <p className="mt-1 text-sm font-medium text-slate-500">Weekly dose calendar for all patients</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{t.schedules.title}</h1>
+        <p className="mt-1 text-sm font-medium text-slate-500">{t.schedules.subtitle}</p>
       </div>
 
       {/* ── Weekly Calendar ── */}

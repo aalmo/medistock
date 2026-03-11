@@ -6,6 +6,7 @@ import {
   ShieldAlert, BellOff, MessageSquare
 } from "lucide-react"
 import { formatDateTime } from "@/lib/utils"
+import { useT } from "@/lib/i18n/context"
 
 interface Notification {
   id:        string
@@ -36,6 +37,19 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading,       setLoading]        = useState(true)
   const [filter,        setFilter]         = useState<"all" | "unread">("all")
+  const { t } = useT()
+
+  // Build TYPE_CONFIG dynamically from translations
+  const TYPE_CONFIG_T = {
+    LOW_STOCK:     { ...TYPE_CONFIG.LOW_STOCK,     label: t.notifications.types.LOW_STOCK },
+    EXPIRY_ALERT:  { ...TYPE_CONFIG.EXPIRY_ALERT,  label: t.notifications.types.EXPIRY_ALERT },
+    REMINDER:      { ...TYPE_CONFIG.REMINDER,      label: t.notifications.types.REMINDER },
+    MISSED_DOSE:   { ...TYPE_CONFIG.MISSED_DOSE,   label: t.notifications.types.MISSED_DOSE },
+    DAILY_SUMMARY: { ...TYPE_CONFIG.DAILY_SUMMARY, label: t.notifications.types.DAILY_SUMMARY },
+    RESTOCK_ALERT: { ...TYPE_CONFIG.RESTOCK_ALERT, label: t.notifications.types.RESTOCK_ALERT },
+    AUTO_COMPLETE: { ...TYPE_CONFIG.AUTO_COMPLETE, label: t.notifications.types.AUTO_COMPLETE },
+  }
+  const DEFAULT_CONFIG_T = { ...DEFAULT_CONFIG, label: t.notifications.types.DEFAULT }
 
   const fetchNotifs = () => {
     setLoading(true)
@@ -73,7 +87,7 @@ export default function NotificationsPage() {
     const d = new Date(n.createdAt)
     const today     = new Date(); today.setHours(0,0,0,0)
     const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1)
-    const label = d >= today ? "Today" : d >= yesterday ? "Yesterday" : d.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })
+    const label = d >= today ? t.common.today : d >= yesterday ? t.common.yesterday : d.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })
     if (!groups[label]) groups[label] = []
     groups[label].push(n)
   })
@@ -85,11 +99,11 @@ export default function NotificationsPage() {
       {/* ── Header ── */}
       <div className="dashboard-surface flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Notifications</h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{t.notifications.title}</h1>
           <p className="mt-1 text-sm font-medium text-slate-500">
             {unread > 0
-              ? <span><span className="font-semibold text-blue-600">{unread} unread</span> · {notifications.length} total</span>
-              : "All caught up · " + notifications.length + " total"}
+              ? <span><span className="font-semibold text-blue-600">{unread} {t.notifications.unread}</span> · {notifications.length} {t.notifications.totalLabel.toLowerCase()}</span>
+              : `${t.common.allCaughtUp} · ${notifications.length} ${t.notifications.totalLabel.toLowerCase()}`}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -97,7 +111,7 @@ export default function NotificationsPage() {
             {(["all", "unread"] as const).map(f => (
               <button key={f} onClick={() => setFilter(f)}
                 className={`flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 font-semibold capitalize transition-all ${filter === f ? "bg-white text-slate-900 shadow-[0_4px_12px_-6px_rgba(15,23,42,0.35)]" : "text-slate-500 hover:text-slate-700"}`}>
-                {f}
+                {f === "all" ? t.notifications.all : t.notifications.unread}
                 {f === "unread" && unread > 0 && (
                   <span className="rounded-full bg-blue-500 px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">{unread}</span>
                 )}
@@ -107,7 +121,7 @@ export default function NotificationsPage() {
           {unread > 0 && (
             <button onClick={markAllRead}
               className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm transition-all hover:-translate-y-px hover:shadow-md">
-              <CheckCheck className="h-3.5 w-3.5" /> Mark all read
+              <CheckCheck className="h-3.5 w-3.5" /> {t.notifications.markAllRead}
             </button>
           )}
         </div>
@@ -116,9 +130,9 @@ export default function NotificationsPage() {
       {/* ── KPI strip ── */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: "Total",   value: notifications.length, gradient: "from-slate-500 to-slate-600",   accent: "text-slate-700",   icon: MessageSquare },
-          { label: "Unread",  value: unread,               gradient: "from-blue-500 to-indigo-600",   accent: "text-blue-700",    icon: Bell },
-          { label: "Alerts",  value: alertCount,           gradient: "from-red-500 to-rose-600",      accent: "text-red-700",     icon: ShieldAlert },
+          { label: t.notifications.totalLabel, value: notifications.length, gradient: "from-slate-500 to-slate-600",   accent: "text-slate-700",   icon: MessageSquare },
+          { label: t.notifications.unread,     value: unread,               gradient: "from-blue-500 to-indigo-600",   accent: "text-blue-700",    icon: Bell },
+          { label: t.notifications.alerts,     value: alertCount,           gradient: "from-red-500 to-rose-600",      accent: "text-red-700",     icon: ShieldAlert },
         ].map(s => (
           <div key={s.label} className="dashboard-surface group relative overflow-hidden p-4">
             <div className={`absolute -top-6 -right-6 h-20 w-20 rounded-full bg-gradient-to-br ${s.gradient} opacity-[0.07]`} />
@@ -145,8 +159,8 @@ export default function NotificationsPage() {
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
             <BellOff className="h-7 w-7 text-slate-300" />
           </div>
-          <p className="font-semibold text-slate-700">{filter === "unread" ? "No unread notifications" : "No notifications yet"}</p>
-          <p className="mt-1 text-xs text-slate-500">You're all caught up!</p>
+          <p className="font-semibold text-slate-700">{filter === "unread" ? t.notifications.noUnread : t.notifications.noNotifs}</p>
+          <p className="mt-1 text-xs text-slate-500">{t.common.allCaughtUp}</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -155,7 +169,7 @@ export default function NotificationsPage() {
               <p className="mb-2.5 px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">{date}</p>
               <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
                 {items.map(n => {
-                  const cfg = TYPE_CONFIG[n.type] ?? DEFAULT_CONFIG
+                  const cfg = TYPE_CONFIG_T[n.type as keyof typeof TYPE_CONFIG_T] ?? DEFAULT_CONFIG_T
                   const Icon = cfg.iconEl
                   const isEmail = n.channel === "EMAIL"
                   return (
@@ -181,7 +195,7 @@ export default function NotificationsPage() {
                           </span>
                           {isEmail && (
                             <span className="inline-flex items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-600">
-                              <Mail className="h-2.5 w-2.5" /> Email
+                              <Mail className="h-2.5 w-2.5" /> {t.notifications.emailSent}
                             </span>
                           )}
                         </div>

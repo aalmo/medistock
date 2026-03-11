@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { Mail, Bell, Globe, User, Save, CheckCircle2, Send } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useT } from "@/lib/i18n/context"
 
 const TIMEZONES = [
   "UTC","Europe/Berlin","Europe/London","Europe/Paris","Europe/Rome",
@@ -56,6 +57,7 @@ const SELECT = "w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl f
 export default function SettingsPage() {
   const { data: session } = useSession()
   const { toast } = useToast()
+  const { t } = useT()
   const [settings, setSettings] = useState<UserSettings>({
     name: "", email: "", timezone: "UTC",
     emailNotifs: true, emailAlertLevel: "low", lowStockDays: 7, expiryAlertDays: 30,
@@ -112,29 +114,29 @@ export default function SettingsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-gray-900">Settings</h1>
-          <p className="text-sm text-gray-400 mt-0.5">Preferences for {session?.user?.email}</p>
+          <h1 className="text-2xl font-black tracking-tight text-gray-900">{t.settings.title}</h1>
+          <p className="text-sm text-gray-400 mt-0.5">{t.settings.subtitle} {session?.user?.email}</p>
         </div>
         <button onClick={save} disabled={saving}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold shadow-sm hover:bg-blue-700 hover:shadow-md hover:-translate-y-px transition-all disabled:opacity-60">
           <Save className="w-4 h-4" />
-          {saving ? "Saving…" : "Save changes"}
+          {saving ? t.common.saving : t.settings.saveChanges}
         </button>
       </div>
 
       {/* Account */}
-      <Section icon={User} title="Account" subtitle="Your personal information">
-        <Field label="Full name">
-          <input className={INPUT} value={settings.name} onChange={e => update("name", e.target.value)} placeholder="Your name" />
+      <Section icon={User} title={t.settings.account} subtitle={t.settings.accountSubtitle}>
+        <Field label={t.settings.fullName}>
+          <input className={INPUT} value={settings.name} onChange={e => update("name", e.target.value)} placeholder={t.settings.fullName} />
         </Field>
-        <Field label="Email address" hint="Used for login and email notifications">
+        <Field label={t.settings.emailAddress} hint={t.settings.emailHint}>
           <input className={`${INPUT} bg-gray-50 text-gray-500`} value={settings.email} disabled />
         </Field>
       </Section>
 
       {/* Timezone */}
-      <Section icon={Globe} title="Timezone" subtitle="Used for scheduling and reminders">
-        <Field label="Your timezone">
+      <Section icon={Globe} title={t.settings.timezone} subtitle={t.settings.timezoneSubtitle}>
+        <Field label={t.settings.yourTimezone}>
           <select className={SELECT} value={settings.timezone} onChange={e => update("timezone", e.target.value)}>
             {TIMEZONES.map(tz => <option key={tz} value={tz}>{tz.replace("_"," ")}</option>)}
           </select>
@@ -142,14 +144,14 @@ export default function SettingsPage() {
       </Section>
 
       {/* Email notifications */}
-      <Section icon={Mail} title="Email Notifications" subtitle="Receive low-stock alerts by email">
+      <Section icon={Mail} title={t.settings.emailNotifs} subtitle={t.settings.emailNotifsSubtitle}>
 
         {/* Master toggle */}
-        <Field label="Email alerts">
+        <Field label={t.settings.alertLevel}>
           <div className="flex items-center justify-between p-3.5 rounded-xl border border-gray-200 bg-gray-50">
             <div>
-              <p className="text-sm font-semibold text-gray-800">Send email alerts</p>
-              <p className="text-xs text-gray-400 mt-0.5">Receive alerts when medication stock is low</p>
+              <p className="text-sm font-semibold text-gray-800">{t.settings.sendEmailAlerts}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{t.settings.receiveAlerts}</p>
             </div>
             <button
               onClick={() => update("emailNotifs", !settings.emailNotifs)}
@@ -163,12 +165,12 @@ export default function SettingsPage() {
         {settings.emailNotifs && (
           <>
             {/* Alert level */}
-            <Field label="Alert level" hint="Choose which stock levels trigger an email">
+            <Field label={t.settings.alertLevel} hint={t.settings.alertLevelHint}>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { value: "off",      label: "Off",           icon: "🔕", desc: "No emails",             border: "border-gray-200",  bg: "bg-gray-50",    text: "text-gray-600"   },
-                  { value: "critical", label: "Critical only", icon: "🔴", desc: "Red alerts only",       border: "border-red-200",   bg: "bg-red-50",     text: "text-red-700"    },
-                  { value: "low",      label: "Low + Critical",icon: "🟡", desc: "Yellow & red alerts",   border: "border-amber-200", bg: "bg-amber-50",   text: "text-amber-700"  },
+                  { value: "off",      label: t.settings.off,          icon: "🔕", desc: t.settings.noEmails,        border: "border-gray-200",  bg: "bg-gray-50",    text: "text-gray-600"   },
+                  { value: "critical", label: t.settings.criticalOnly,  icon: "🔴", desc: t.settings.redAlertsOnly,   border: "border-red-200",   bg: "bg-red-50",     text: "text-red-700"    },
+                  { value: "low",      label: t.settings.lowCritical,   icon: "🟡", desc: t.settings.yellowRedAlerts, border: "border-amber-200", bg: "bg-amber-50",   text: "text-amber-700"  },
                 ].map(opt => (
                   <button
                     key={opt.value}
@@ -188,7 +190,7 @@ export default function SettingsPage() {
             </Field>
 
             {/* Low-stock threshold */}
-            <Field label="Low stock threshold" hint={`Send email when stock drops below ${settings.lowStockDays} days remaining`}>
+            <Field label={t.settings.lowStockThreshold} hint={`Send email when stock drops below ${settings.lowStockDays} ${t.settings.days} remaining`}>
               <div className="flex items-center gap-3">
                 <input type="range" min={1} max={30} step={1}
                   value={settings.lowStockDays}
@@ -196,16 +198,16 @@ export default function SettingsPage() {
                   className="flex-1 accent-blue-600"/>
                 <div className="w-16 text-center">
                   <span className="text-lg font-black text-blue-600">{settings.lowStockDays}</span>
-                  <span className="text-xs text-gray-400 block">days</span>
+                  <span className="text-xs text-gray-400 block">{t.settings.days}</span>
                 </div>
               </div>
               <div className="flex justify-between text-[10px] text-gray-400 mt-1">
-                <span>1 day (urgent)</span><span>30 days (early)</span>
+                <span>{t.settings.urgent}</span><span>{t.settings.early}</span>
               </div>
             </Field>
 
             {/* Expiry alert threshold */}
-            <Field label="Expiry alert threshold" hint={`Alert when a package expires within ${settings.expiryAlertDays} days`}>
+            <Field label={t.settings.expiryThreshold} hint={`Alert when a package expires within ${settings.expiryAlertDays} ${t.settings.days}`}>
               <div className="flex items-center gap-3">
                 <input type="range" min={7} max={180} step={7}
                   value={settings.expiryAlertDays}
@@ -213,11 +215,11 @@ export default function SettingsPage() {
                   className="flex-1 accent-violet-600"/>
                 <div className="w-16 text-center">
                   <span className="text-lg font-black text-violet-600">{settings.expiryAlertDays}</span>
-                  <span className="text-xs text-gray-400 block">days</span>
+                  <span className="text-xs text-gray-400 block">{t.settings.days}</span>
                 </div>
               </div>
               <div className="flex justify-between text-[10px] text-gray-400 mt-1">
-                <span>7 days</span><span>180 days (6 months)</span>
+                <span>7 {t.settings.days}</span><span>{t.settings.months6}</span>
               </div>
             </Field>
 
@@ -228,9 +230,9 @@ export default function SettingsPage() {
                   <Mail className="w-4 h-4 text-blue-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-gray-800">Test your email setup</p>
+                  <p className="text-sm font-bold text-gray-800">{t.settings.testEmail}</p>
                   <p className="text-xs text-gray-500 mt-0.5 mb-3">
-                    Send a sample low-stock alert to <strong>{settings.email}</strong> to verify delivery.
+                    {t.settings.testEmailDesc} <strong>{settings.email}</strong>
                   </p>
                   <button
                     onClick={sendTest}
@@ -238,11 +240,11 @@ export default function SettingsPage() {
                     className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-60"
                   >
                     {testSending ? (
-                      <><span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin"/>Sending…</>
+                      <><span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin"/>{t.settings.sending}</>
                     ) : testResult === "sent" ? (
-                      <><CheckCircle2 className="w-3.5 h-3.5"/>Email sent!</>
+                      <><CheckCircle2 className="w-3.5 h-3.5"/>{t.settings.emailSent}</>
                     ) : (
-                      <><Send className="w-3.5 h-3.5"/>Send test email</>
+                      <><Send className="w-3.5 h-3.5"/>{t.settings.sendTestEmail}</>
                     )}
                   </button>
                   {testResult === "error" && (
@@ -255,7 +257,7 @@ export default function SettingsPage() {
 
               {/* Setup instructions */}
               <div className="mt-4 pt-4 border-t border-blue-100">
-                <p className="text-[11px] font-bold text-blue-700 mb-2">📬 SMTP email setup</p>
+                <p className="text-[11px] font-bold text-blue-700 mb-2">📬 {t.settings.smtpSetup}</p>
                 <ol className="space-y-1 text-[11px] text-gray-500 list-none">
                   <li>1. Add to <code className="bg-gray-100 px-1 rounded font-mono">.env.local</code>:</li>
                   <li className="ml-3"><code className="bg-gray-100 px-1 rounded font-mono">SMTP_HOST=smtp.strato.de</code></li>
@@ -272,12 +274,12 @@ export default function SettingsPage() {
       </Section>
 
       {/* In-app notifications */}
-      <Section icon={Bell} title="In-App Notifications" subtitle="Reminders and alerts inside MediStock">
+      <Section icon={Bell} title={t.settings.inAppNotifs} subtitle={t.settings.inAppSubtitle}>
         <div className="space-y-2.5">
           {[
-            { label: "Dose reminders",         desc: "30 minutes before a scheduled dose",       checked: true  },
-            { label: "Low stock alerts",        desc: "When stock drops below threshold",          checked: true  },
-            { label: "Auto-complete summary",   desc: "When doses are auto-marked at end of day",  checked: true  },
+            { label: t.settings.doseReminders,       desc: t.settings.doseRemindersDesc   },
+            { label: t.settings.lowStockAlertsLabel,  desc: t.settings.lowStockAlertsDesc  },
+            { label: t.settings.autoCompleteLabel,    desc: t.settings.autoCompleteDesc    },
           ].map(item => (
             <div key={item.label} className="flex items-center justify-between p-3.5 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
               <div>
@@ -297,7 +299,7 @@ export default function SettingsPage() {
         <button onClick={save} disabled={saving}
           className="flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 text-white font-bold shadow-sm hover:bg-blue-700 hover:shadow-md hover:-translate-y-px transition-all disabled:opacity-60">
           <Save className="w-4 h-4" />
-          {saving ? "Saving…" : "Save all settings"}
+          {saving ? t.common.saving : t.settings.saveAll}
         </button>
       </div>
     </div>
