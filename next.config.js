@@ -1,0 +1,23 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {},
+  // Fix: webpack cache rename race condition on macOS (ENOENT .pack.gz_ -> .pack.gz)
+  webpack: (config, { dev }) => {
+    if (dev) {
+      config.cache = {
+        ...config.cache,
+        compression: false,   // disable gzip compression — avoids the rename temp file
+      }
+    }
+    return config
+  },
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: '*.supabase.co' },
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
+    ],
+  },
+}
+
+module.exports = nextConfig
+

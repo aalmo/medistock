@@ -1,0 +1,208 @@
+// Prisma schema - SQLite compatible
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  role          String    @default("CAREGIVER")
+  timezone      String    @default("UTC")
+  emailNotifs      Boolean   @default(true)
+  emailAlertLevel  String    @default("low")
+  lowStockDays     Int       @default(7)
+  expiryAlertDays  Int       @default(30)   // alert when expiry within this many days
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  patients      Patient[]
+  notifications Notification[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Patient {
+  id        String    @id @default(cuid())
+  userId    String
+  name      String
+  dob       DateTime?
+  gender    String?
+  avatarUrl String?
+  phone     String?
+  email     String?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patientMedications PatientMedication[]
+  notifications      Notification[]
+}
+
+model Medication {
+  id          String   @id @default(cuid())
+  rxcui       String?
+  name        String   @unique
+  brandName   String?
+  genericName String?
+  form        String?
+  strength    String?
+  unit        String?  @default("pill")
+  imageUrl    String?
+  ingredients String?
+  warnings    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  patientMedications PatientMedication[]
+}
+
+model PatientMedication {
+  id                String   @id @default(cuid())
+  patientId         String
+  medicationId      String
+  unitType          String   @default("pill")        // "pill" | "inhalation" | "tablet" | "ml" etc.
+  pillsInStock      Float    @default(0)             // total individual doses/units in stock
+  dosesPerContainer Int      @default(1)             // e.g. 100 inhalations per bottle
+  containersInStock Float    @default(0)             // e.g. 10 bottles
+  lowStockThreshold Int      @default(7)
+  lowStockPills     Float    @default(14)
+  notes             String?
+  active            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  patient         Patient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  medication      Medication       @relation(fields: [medicationId], references: [id])
+  schedules       Schedule[]
+  inventoryEvents InventoryEvent[]
+  packages        MedicationPackage[]
+
+  @@unique([patientId, medicationId])
+}
+
+model MedicationPackage {
+  id                  String    @id @default(cuid())
+  patientMedicationId String
+  lotNumber           String?
+  expiryDate          DateTime
+  quantity            Float     @default(1)   // number of units (pills/bottles/etc.) in this package
+  unitType            String    @default("pill")
+  opened              Boolean   @default(false)
+  notes               String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  patientMedication PatientMedication @relation(fields: [patientMedicationId], references: [id], onDelete: Cascade)
+
+  @@index([expiryDate])
+  @@index([patientMedicationId])
+}
+
+model Schedule {
+  id                  String   @id @default(cuid())
+  patientMedicationId String
+  frequency           String   @default("DAILY")
+  // Stored as JSON strings: '["08:00","20:00"]' and '[1,2,3,4,5,6,7]'
+  timesOfDay          String   @default("[\"08:00\"]")
+  daysOfWeek          String   @default("[1,2,3,4,5,6,7]")
+  pillsPerDose        Float    @default(1)
+  startDate           DateTime @default(now())
+  endDate             DateTime?
+  active              Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  patientMedication PatientMedication @relation(fields: [patientMedicationId], references: [id], onDelete: Cascade)
+  doseLogs          DoseLog[]
+}
+
+model DoseLog {
+  id               String   @id @default(cuid())
+  scheduleId       String
+  scheduledAt      DateTime
+  takenAt          DateTime?
+  status           String   @default("PENDING")
+  pillsDecremented Float    @default(0)
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@index([scheduleId, scheduledAt])
+  @@index([status, scheduledAt])
+}
+
+model InventoryEvent {
+  id                  String   @id @default(cuid())
+  patientMedicationId String
+  type                String
+  quantity            Float
+  reason              String?
+  createdAt           DateTime @default(now())
+
+  patientMedication PatientMedication @relation(fields: [patientMedicationId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  patientId String?
+  type      String
+  message   String
+  channel   String   @default("IN_APP")
+  read      Boolean  @default(false)
+  sentAt    DateTime?
+  metadata  String?
+  createdAt DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patient Patient? @relation(fields: [patientId], references: [id])
+
+  @@index([userId, read])
+}
