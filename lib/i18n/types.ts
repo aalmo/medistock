@@ -256,4 +256,3 @@ export interface Translation {
   }
 }
 
-export type { Locale, Translation }

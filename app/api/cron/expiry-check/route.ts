@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ ok: true, ...result })
 }
 
-export async function runExpiryCheck() {
+async function runExpiryCheck() {
   const now   = new Date()
   const users = await prisma.user.findMany({
     select: { id: true, email: true, name: true, emailNotifs: true, emailAlertLevel: true, expiryAlertDays: true },

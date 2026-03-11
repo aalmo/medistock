@@ -45,7 +45,7 @@ export async function searchOpenFDA(term: string): Promise<FDADrugResult[]> {
       const strength   = doseStr ?? undefined
 
       return {
-        rxcui:        undefined,
+        rxcui:        "" as string,
         name:         generic ?? brand ?? term,
         brandName:    brand,
         genericName:  generic,

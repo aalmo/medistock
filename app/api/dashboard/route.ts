@@ -9,7 +9,7 @@ import {
   parseJsonArray,
   generateDoseTimes,
 } from "@/lib/calculations"
-import { runAutoComplete } from "@/app/api/cron/auto-complete/route"
+import { runAutoComplete } from "@/lib/auto-complete"
 
 function computeAdherence(taken: number, missed: number): number {
   const total = taken + missed
