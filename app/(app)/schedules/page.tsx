@@ -20,13 +20,6 @@ const UNIT_THEME: Record<string, { bg: string; text: string; border: string; ico
   other:      { bg: "bg-slate-50",  text: "text-slate-700",  border: "border-slate-200",  icon: Package },
 }
 
-const STATUS_STYLE: Record<string, { dot: string; label: string; ring: string }> = {
-  TAKEN:   { dot: "bg-emerald-400", label: "text-emerald-700", ring: "ring-emerald-200" },
-  MISSED:  { dot: "bg-red-400",     label: "text-red-700",     ring: "ring-red-200" },
-  SKIPPED: { dot: "bg-gray-400",    label: "text-gray-500",    ring: "ring-gray-200" },
-  PENDING: { dot: "bg-blue-400 animate-pulse", label: "text-blue-600", ring: "ring-blue-200" },
-}
-
 function StatusIcon({ status }: { status: string }) {
   if (status === "TAKEN")   return <CheckCircle className="w-3 h-3 text-emerald-500 shrink-0" />
   if (status === "MISSED")  return <AlertTriangle className="w-3 h-3 text-red-400 shrink-0" />
@@ -65,53 +58,51 @@ export default function SchedulesPage() {
   )
 
   if (loading) return (
-    <div className="space-y-4 animate-pulse max-w-5xl">
-      <div className="h-10 w-64 bg-muted rounded-xl" />
-      <div className="h-72 bg-muted rounded-2xl" />
-      <div className="space-y-2">{[...Array(4)].map((_, i) => <div key={i} className="h-16 bg-muted rounded-xl" />)}</div>
+    <div className="w-full space-y-5 animate-pulse">
+      <div className="h-20 w-64 rounded-xl bg-muted" />
+      <div className="h-72 rounded-2xl bg-muted" />
+      <div className="space-y-2">{[...Array(4)].map((_, i) => <div key={i} className="h-16 rounded-xl bg-muted" />)}</div>
     </div>
   )
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="relative w-full space-y-6 pb-3">
+      <div className="pointer-events-none absolute inset-x-0 -top-8 -z-10 h-44 rounded-3xl bg-gradient-to-r from-blue-100/40 via-violet-100/40 to-sky-100/40 blur-2xl" />
 
       {/* ── Header ── */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Schedules</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Weekly dose calendar for all patients</p>
+      <div className="dashboard-surface p-5">
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Schedules</h1>
+        <p className="mt-1 text-sm font-medium text-slate-500">Weekly dose calendar for all patients</p>
       </div>
 
       {/* ── Weekly Calendar ── */}
-      <div className="
-        bg-white rounded-2xl overflow-hidden
-        shadow-[0_4px_24px_-4px_rgba(0,0,0,0.09),0_1px_4px_rgba(0,0,0,0.04)]
-      ">
+      <div className="dashboard-surface overflow-hidden">
         {/* calendar header */}
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <div>
-            <h2 className="text-sm font-semibold text-gray-900">
-              {format(weekStart, "MMMM d")} – {format(addDays(weekStart, 6), "MMMM d, yyyy")}
+            <h2 className="text-sm font-semibold text-slate-900">
+              {format(weekStart, "MMMM d")} - {format(addDays(weekStart, 6), "MMMM d, yyyy")}
             </h2>
-            {weekOffset === 0 && <p className="text-xs text-muted-foreground">Current week</p>}
+            {weekOffset === 0 && <p className="text-xs text-slate-500">Current week</p>}
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setWeekOffset(o => o - 1)}
-              className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 transition-colors hover:bg-slate-50"
             >
-              <ChevronLeft className="w-4 h-4 text-gray-500" />
+              <ChevronLeft className="h-4 w-4 text-slate-500" />
             </button>
             <button
               onClick={() => setWeekOffset(0)}
-              className="h-8 px-2.5 text-xs font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+              className="h-8 rounded-lg border border-slate-200 px-2.5 text-xs font-medium transition-colors hover:bg-slate-50"
             >
               Today
             </button>
             <button
               onClick={() => setWeekOffset(o => o + 1)}
-              className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 transition-colors hover:bg-slate-50"
             >
-              <ChevronRight className="w-4 h-4 text-gray-500" />
+              <ChevronRight className="h-4 w-4 text-slate-500" />
             </button>
           </div>
         </div>
@@ -119,20 +110,20 @@ export default function SchedulesPage() {
         {/* day columns */}
         <div className="p-4">
           {/* Day headers */}
-          <div className="grid grid-cols-7 gap-2 mb-3">
+          <div className="mb-3 grid grid-cols-7 gap-2">
             {weekDays.map(d => {
               const isToday = isSameDay(d, today)
               return (
                 <div key={d.toISOString()} className="text-center">
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                  <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
                     {format(d, "EEE")}
                   </p>
                   <div className={`
-                    mx-auto mt-1 w-7 h-7 rounded-full flex items-center justify-center
-                    text-sm font-bold
+                    mx-auto mt-1 flex h-7 w-7 items-center justify-center rounded-full
+                    text-sm font-semibold
                     ${isToday
-                      ? "bg-blue-600 text-white shadow-[0_2px_8px_rgba(59,130,246,0.4)]"
-                      : "text-gray-700"}
+                      ? "bg-blue-600 text-white shadow-[0_2px_8px_rgba(59,130,246,0.35)]"
+                      : "text-slate-700"}
                   `}>
                     {format(d, "d")}
                   </div>
@@ -153,29 +144,27 @@ export default function SchedulesPage() {
                 <div
                   key={day.toISOString()}
                   className={`
-                    min-h-[110px] rounded-xl p-1.5 space-y-1
+                    min-h-[112px] space-y-1 rounded-xl p-1.5
                     ${isToday
                       ? "bg-blue-50 ring-1 ring-blue-200"
-                      : "bg-gray-50/60"}
+                      : "bg-slate-50/70"}
                   `}
                 >
                   {dayEvents.length === 0 && (
-                    <div className="h-full flex items-center justify-center">
-                      <span className="text-[10px] text-gray-300">—</span>
+                    <div className="flex h-full items-center justify-center">
+                      <span className="text-[10px] text-slate-300">-</span>
                     </div>
                   )}
                   {dayEvents.slice(0, 4).map((ev: any) => {
                     const theme = UNIT_THEME[ev.unitType] ?? UNIT_THEME.pill
-                    const Icon = theme.icon
                     return (
                       <div
                         key={ev.id}
                         title={`${ev.patientName}: ${ev.brandName ?? ev.medName}${ev.strength ? ` (${ev.strength})` : ""} at ${format(new Date(ev.scheduledAt), "HH:mm")}`}
                         className={`
-                          flex items-center gap-1 px-1.5 py-1 rounded-lg
-                          border text-[10px] font-medium
+                          flex cursor-default items-center gap-1 rounded-lg border px-1.5 py-1
+                          text-[10px] font-medium
                           ${theme.bg} ${theme.text} ${theme.border}
-                          cursor-default
                         `}
                       >
                         <StatusIcon status={ev.status} />
@@ -186,7 +175,7 @@ export default function SchedulesPage() {
                     )
                   })}
                   {dayEvents.length > 4 && (
-                    <p className="text-[9px] text-center text-muted-foreground">+{dayEvents.length - 4} more</p>
+                    <p className="text-center text-[9px] text-slate-500">+{dayEvents.length - 4} more</p>
                   )}
                 </div>
               )
@@ -197,14 +186,14 @@ export default function SchedulesPage() {
 
       {/* ── Schedule list ── */}
       <div>
-        <h2 className="text-sm font-semibold text-gray-900 mb-3">All Active Schedules</h2>
+        <h2 className="mb-3 text-sm font-semibold text-slate-900">All Active Schedules</h2>
         {schedules.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center">
-              <Calendar className="w-7 h-7 opacity-30" />
+          <div className="dashboard-surface py-16 text-center text-slate-500">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
+              <Calendar className="h-7 w-7 opacity-30" />
             </div>
             <p className="font-medium">No schedules yet</p>
-            <p className="text-sm mt-1">Add medications to patients to create schedules</p>
+            <p className="mt-1 text-sm">Add medications to patients to create schedules</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -228,34 +217,28 @@ export default function SchedulesPage() {
               return (
                 <div
                   key={sch.id}
-                  className="
-                    bg-white rounded-2xl px-5 py-4
-                    shadow-[0_2px_12px_-2px_rgba(0,0,0,0.07),0_1px_3px_rgba(0,0,0,0.04)]
-                    hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.10)] hover:-translate-y-px
-                    transition-all duration-150
-                    flex items-center gap-4
-                  "
+                  className="dashboard-surface flex items-center gap-4 px-5 py-4 transition-all duration-150 hover:-translate-y-px hover:shadow-[0_18px_30px_-24px_rgba(15,23,42,0.5)]"
                 >
-                  <div className={`shrink-0 w-10 h-10 rounded-xl ${theme.bg} border ${theme.border} flex items-center justify-center`}>
-                    <Icon className={`w-5 h-5 ${theme.text}`} />
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${theme.bg} ${theme.border}`}>
+                    <Icon className={`h-5 w-5 ${theme.text}`} />
                   </div>
 
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-1.5">
-                      <p className="font-semibold text-sm text-gray-900 truncate">
+                      <p className="truncate text-sm font-semibold text-slate-900">
                         {brandName ?? medName}
                       </p>
-                      {strength && <span className="text-xs text-gray-400 shrink-0">({strength})</span>}
+                      {strength && <span className="shrink-0 text-xs text-slate-400">({strength})</span>}
                     </div>
-                    <p className="text-xs text-muted-foreground truncate">{patient}</p>
-                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                      <span className="text-[10px] font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md">
+                    <p className="truncate text-xs text-slate-500">{patient}</p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                      <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
                         {getFrequencyLabel(times.length)}
                       </span>
                       {times.map((t, i) => (
-                        <span key={i} className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md ${theme.bg} ${theme.text}`}>{t}</span>
+                        <span key={i} className={`rounded-md px-1.5 py-0.5 font-mono text-[10px] ${theme.bg} ${theme.text}`}>{t}</span>
                       ))}
-                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-md ${sch.active ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                      <span className={`rounded-md px-2 py-0.5 text-[10px] font-medium ${sch.active ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
                         {sch.active ? "Active" : "Inactive"}
                       </span>
                     </div>
@@ -265,16 +248,16 @@ export default function SchedulesPage() {
                   {total > 0 && (
                     <div className="shrink-0 flex items-center gap-3 text-center">
                       <div>
-                        <p className="text-sm font-bold text-emerald-600">{taken}</p>
-                        <p className="text-[9px] text-muted-foreground">taken</p>
+                        <p className="text-sm font-semibold text-emerald-600">{taken}</p>
+                        <p className="text-[9px] text-slate-500">taken</p>
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-red-500">{missed}</p>
-                        <p className="text-[9px] text-muted-foreground">missed</p>
+                        <p className="text-sm font-semibold text-red-500">{missed}</p>
+                        <p className="text-[9px] text-slate-500">missed</p>
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-blue-500">{pending}</p>
-                        <p className="text-[9px] text-muted-foreground">pending</p>
+                        <p className="text-sm font-semibold text-blue-500">{pending}</p>
+                        <p className="text-[9px] text-slate-500">pending</p>
                       </div>
                     </div>
                   )}

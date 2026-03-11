@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react"
 import { format, differenceInDays, isPast } from "date-fns"
 import {
   Package, Plus, Trash2, Pencil, X, Check, ChevronDown, ChevronUp,
-  CalendarClock, Boxes
+  CalendarClock, Boxes, ShieldAlert, Timer, ShieldCheck, Clock4
 } from "lucide-react"
 
 // ── Types ─────────────────────────────────────────────────────────────────
@@ -28,10 +28,10 @@ function getExpStatus(expiryDate: string, alertDays = 30) {
   const exp  = new Date(expiryDate)
   const now  = new Date()
   const days = differenceInDays(exp, now)
-  if (isPast(exp))                               return { key: "expired",  label: "Expired",  days, color: "#ef4444", bg: "bg-red-50",    border: "border-red-200",    badge: "bg-red-500 text-white",   icon: "💀" }
-  if (days <= 7)                                 return { key: "critical", label: "Critical", days, color: "#ef4444", bg: "bg-red-50",    border: "border-red-200",    badge: "bg-red-500 text-white",   icon: "🔴" }
-  if (days <= alertDays)                         return { key: "warning",  label: "Warning",  days, color: "#f59e0b", bg: "bg-amber-50",  border: "border-amber-200",  badge: "bg-amber-400 text-white", icon: "🟡" }
-  return                                                { key: "good",    label: "Good",     days, color: "#10b981", bg: "bg-emerald-50",border: "border-emerald-200",badge: "bg-emerald-500 text-white",icon: "✅" }
+  if (isPast(exp))                               return { key: "expired",  label: "Expired",  days, color: "#ef4444", bg: "bg-red-50",    border: "border-red-200",    badge: "bg-red-500 text-white",   icon: ShieldAlert }
+  if (days <= 7)                                 return { key: "critical", label: "Critical", days, color: "#ef4444", bg: "bg-red-50",    border: "border-red-200",    badge: "bg-red-500 text-white",   icon: Clock4 }
+  if (days <= alertDays)                         return { key: "warning",  label: "Warning",  days, color: "#f59e0b", bg: "bg-amber-50",  border: "border-amber-200",  badge: "bg-amber-400 text-white", icon: Timer }
+  return                                                { key: "good",    label: "Good",     days, color: "#10b981", bg: "bg-emerald-50",border: "border-emerald-200",badge: "bg-emerald-500 text-white",icon: ShieldCheck }
 }
 
 // ── Add/Edit modal ────────────────────────────────────────────────────────
@@ -84,30 +84,30 @@ function PackageModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/35 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_26px_60px_-28px_rgba(15,23,42,0.55)]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-violet-100 flex items-center justify-center">
-              <Package className="w-4 h-4 text-violet-600" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-100">
+              <Package className="h-4 w-4 text-violet-600" />
             </div>
-            <p className="font-bold text-gray-900">{editPkg ? "Edit Package" : "Add Package"}</p>
+            <p className="font-semibold text-slate-900">{editPkg ? "Edit Package" : "Add Package"}</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
-            <X className="w-4 h-4 text-gray-500" />
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-slate-100">
+            <X className="h-4 w-4 text-slate-500" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5 space-y-4">
-          {error && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">{error}</p>}
+        <div className="space-y-4 px-6 py-5">
+          {error && <p className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>}
 
           {/* Medication selector */}
           <div>
-            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5">Medication</label>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Medication</label>
             <select
-              className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 bg-white"
+              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
               value={form.patientMedicationId}
               onChange={e => setForm(f => ({ ...f, patientMedicationId: e.target.value }))}
               disabled={!!editPkg}
@@ -123,19 +123,19 @@ function PackageModal({
           {/* Expiry date + quantity */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5">Expiry Date *</label>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Expiry Date *</label>
               <input type="date"
-                className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400"
+                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
                 value={form.expiryDate}
                 onChange={e => setForm(f => ({ ...f, expiryDate: e.target.value }))}
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5">
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Quantity ({selectedPm?.unitType ?? "units"})
               </label>
               <input type="number" min={0.5} step={0.5}
-                className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400"
+                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
                 value={form.quantity}
                 onChange={e => setForm(f => ({ ...f, quantity: Number(e.target.value) }))}
               />
@@ -144,31 +144,31 @@ function PackageModal({
 
           {/* Lot number */}
           <div>
-            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5">Lot / Batch Number</label>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Lot / Batch Number</label>
             <input type="text" placeholder="e.g. LOT-2024-AB123"
-              className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400"
+              className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
               value={form.lotNumber}
               onChange={e => setForm(f => ({ ...f, lotNumber: e.target.value }))}
             />
           </div>
 
           {/* Opened toggle */}
-          <div className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3">
             <div>
-              <p className="text-sm font-semibold text-gray-800">Package opened</p>
-              <p className="text-xs text-gray-400">Mark if the package/bottle is already open</p>
+              <p className="text-sm font-semibold text-slate-800">Package opened</p>
+              <p className="text-xs text-slate-500">Mark if the package or bottle is already open</p>
             </div>
             <button onClick={() => setForm(f => ({ ...f, opened: !f.opened }))}
-              className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${form.opened ? "bg-violet-600" : "bg-gray-300"}`}>
-              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${form.opened ? "translate-x-5" : ""}`} />
+              className={`relative h-6 w-11 rounded-full transition-colors duration-200 ${form.opened ? "bg-violet-600" : "bg-slate-300"}`}>
+              <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${form.opened ? "translate-x-5" : ""}`} />
             </button>
           </div>
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5">Notes</label>
-            <textarea rows={2} placeholder="Optional notes…"
-              className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 resize-none"
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Notes</label>
+            <textarea rows={2} placeholder="Optional notes..."
+              className="w-full resize-none rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
               value={form.notes}
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
             />
@@ -176,13 +176,13 @@ function PackageModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-2">
-          <button onClick={onClose} className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+        <div className="flex items-center justify-end gap-2 border-t border-slate-100 px-6 py-4">
+          <button onClick={onClose} className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100">
             Cancel
           </button>
           <button onClick={save} disabled={saving}
-            className="flex items-center gap-1.5 px-5 py-2 text-sm font-bold text-white bg-violet-600 rounded-xl hover:bg-violet-700 disabled:opacity-60 transition-colors shadow-sm">
-            {saving ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"/>Saving…</> : <><Check className="w-3.5 h-3.5"/>{editPkg ? "Update" : "Add Package"}</>}
+            className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-px hover:bg-blue-700 disabled:opacity-60">
+            {saving ? <><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white"/>Saving...</> : <><Check className="h-3.5 w-3.5"/>{editPkg ? "Update" : "Add Package"}</>}
           </button>
         </div>
       </div>
@@ -273,40 +273,43 @@ export default function PackagesPage() {
     .sort((a,b) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime())[0]
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
+    <div className="relative w-full space-y-5 pb-3">
+      <div className="pointer-events-none absolute inset-x-0 -top-8 -z-10 h-44 rounded-3xl bg-gradient-to-r from-violet-100/40 via-indigo-100/40 to-sky-100/40 blur-2xl" />
 
       {/* ── Header ── */}
-      <div className="flex items-center justify-between">
+      <div className="dashboard-surface flex items-center justify-between p-5">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-gray-900">Packages</h1>
-          <p className="text-sm text-gray-400 mt-0.5">Track expiry dates across all medication packages</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Packages</h1>
+          <p className="mt-1 text-sm font-medium text-slate-500">Track expiry dates across all medication packages</p>
         </div>
         <button onClick={() => { setEditTarget(null); setModal("add") }}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 text-white text-sm font-bold shadow-sm hover:bg-violet-700 hover:-translate-y-px transition-all">
-          <Plus className="w-4 h-4" /> Add Package
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_24px_-12px_rgba(109,40,217,0.7)] transition-all hover:-translate-y-px hover:shadow-[0_16px_28px_-12px_rgba(109,40,217,0.75)]">
+          <Plus className="h-4 w-4" /> Add Package
         </button>
       </div>
 
       {/* ── KPI strip ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { key: "expired",  label: "Expired",       value: expiredCount,  gradient: "from-red-500 to-rose-600",     accent: "text-red-700",    icon: "💀" },
-          { key: "critical", label: "Critical (<7d)", value: criticalCount, gradient: "from-red-400 to-orange-500",   accent: "text-orange-700", icon: "🔴" },
-          { key: "warning",  label: `Warning (<${alertDays}d)`, value: warningCount, gradient: "from-amber-400 to-yellow-500", accent: "text-amber-700", icon: "🟡" },
-          { key: "good",     label: "Good",           value: goodCount,     gradient: "from-emerald-500 to-teal-600", accent: "text-emerald-700",icon: "✅" },
+          { key: "expired",  label: "Expired",       value: expiredCount,  gradient: "from-red-500 to-rose-600",     accent: "text-red-700",    icon: ShieldAlert },
+          { key: "critical", label: "Critical (<7d)", value: criticalCount, gradient: "from-red-400 to-orange-500",   accent: "text-orange-700", icon: Clock4 },
+          { key: "warning",  label: `Warning (<${alertDays}d)`, value: warningCount, gradient: "from-amber-400 to-yellow-500", accent: "text-amber-700", icon: Timer },
+          { key: "good",     label: "Good",           value: goodCount,     gradient: "from-emerald-500 to-teal-600", accent: "text-emerald-700",icon: ShieldCheck },
         ].map(kpi => (
           <button key={kpi.key}
             onClick={() => setFilter(f => f === kpi.key ? "all" : kpi.key as typeof filter)}
-            className={`group relative overflow-hidden rounded-2xl p-4 text-left transition-all duration-200
-              shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_20px_-4px_rgba(0,0,0,0.12)] hover:-translate-y-0.5
-              ${filter === kpi.key ? "ring-2 ring-offset-1 ring-violet-500" : ""}
-              bg-white`}>
-            <div className={`absolute -top-6 -right-6 w-20 h-20 rounded-full opacity-[0.07] bg-gradient-to-br ${kpi.gradient} group-hover:scale-125 transition-transform duration-500`}/>
-            <div className={`relative inline-flex w-9 h-9 rounded-xl items-center justify-center bg-gradient-to-br ${kpi.gradient} shadow-sm text-base mb-2`}>
-              {kpi.icon}
+            className={`dashboard-surface group relative overflow-hidden p-5 text-left transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_20px_42px_-22px_rgba(15,23,42,0.45)]
+              ${filter === kpi.key ? "ring-2 ring-violet-500/80 ring-offset-1" : ""}`}>
+            <div className={`absolute -top-8 -right-8 h-24 w-24 rounded-full bg-gradient-to-br ${kpi.gradient} opacity-[0.07] transition-transform duration-500 group-hover:scale-110`}/>
+            <div className="relative flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{kpi.label}</p>
+                <p className={`mt-2 text-4xl font-semibold leading-none tracking-tight ${kpi.accent}`}>{kpi.value}</p>
+              </div>
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${kpi.gradient} shadow-[0_6px_16px_-8px_rgba(15,23,42,0.45)]`}>
+                <kpi.icon className="h-5 w-5 text-white" />
+              </div>
             </div>
-            <p className={`text-2xl font-black ${kpi.accent}`}>{kpi.value}</p>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mt-0.5">{kpi.label}</p>
           </button>
         ))}
       </div>
@@ -318,30 +321,32 @@ export default function PackagesPage() {
         const pat = nextExpiry.patientMedication.patient
         if (s.key === "good") return null
         return (
-          <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${s.bg} ${s.border}`}>
-            <span className="text-xl">{s.icon}</span>
+          <div className={`dashboard-surface flex items-center gap-4 px-5 py-4 ${s.bg} border ${s.border}`}>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/80 shadow-sm">
+              <s.icon className="h-5 w-5" style={{ color: s.color }} />
+            </span>
             <div className="flex-1">
-              <p className="text-sm font-bold text-gray-900">
+              <p className="text-sm font-semibold text-slate-900">
                 {pat.name}'s {med.brandName ?? med.name}{med.strength ? ` (${med.strength})` : ""}
-                {nextExpiry.lotNumber ? <span className="font-normal text-gray-500"> · Lot {nextExpiry.lotNumber}</span> : ""}
+                {nextExpiry.lotNumber ? <span className="font-normal text-slate-500"> · Lot {nextExpiry.lotNumber}</span> : ""}
               </p>
-              <p className="text-xs" style={{ color: s.color }}>
+              <p className="mt-0.5 text-xs font-medium" style={{ color: s.color }}>
                 {s.key === "expired"
-                  ? `Expired ${Math.abs(s.days)} day${Math.abs(s.days) !== 1 ? "s" : ""} ago`
+                  ? `Expired ${Math.abs(s.days)} day${Math.abs(s.days) !== 1 ? "s" : ""} ago — dispose immediately`
                   : `Expires in ${s.days} day${s.days !== 1 ? "s" : ""} — ${format(new Date(nextExpiry.expiryDate), "dd MMM yyyy")}`}
               </p>
             </div>
-            <CalendarClock className="w-5 h-5 shrink-0" style={{ color: s.color }}/>
+            <CalendarClock className="h-5 w-5 shrink-0" style={{ color: s.color }}/>
           </div>
         )
       })()}
 
       {/* ── Filter bar ── */}
-      <div className="flex items-center gap-2">
-        <div className="flex bg-gray-100 rounded-xl p-0.5 text-sm">
+      <div className="dashboard-surface p-1.5">
+        <div className="flex rounded-xl bg-slate-100 p-0.5 text-sm">
           {(["all","expired","critical","warning","good"] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-[10px] font-semibold capitalize transition-all ${filter === f ? "bg-white shadow-sm text-gray-900" : "text-gray-400 hover:text-gray-600"}`}>
+              className={`flex-1 rounded-[10px] px-3 py-1.5 font-semibold capitalize transition-all ${filter === f ? "bg-white text-slate-900 shadow-[0_4px_12px_-6px_rgba(15,23,42,0.35)]" : "text-slate-500 hover:text-slate-700"}`}>
               {f === "all" ? `All (${packages.length})` : f}
             </button>
           ))}
@@ -350,16 +355,16 @@ export default function PackagesPage() {
 
       {/* ── Grouped list ── */}
       {loading ? (
-        <div className="space-y-3 animate-pulse">
-          {[...Array(3)].map((_,i) => <div key={i} className="h-24 bg-gray-100 rounded-2xl"/>)}
+        <div className="animate-pulse space-y-3">
+          {[...Array(3)].map((_,i) => <div key={i} className="h-24 rounded-2xl bg-slate-100"/>)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl py-20 text-center shadow-[0_1px_8px_-2px_rgba(0,0,0,0.06)]">
-          <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-violet-50 flex items-center justify-center">
-            <Boxes className="w-7 h-7 text-violet-300" />
+        <div className="dashboard-surface py-20 text-center">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50">
+            <Boxes className="h-7 w-7 text-violet-300" />
           </div>
-          <p className="font-semibold text-gray-700">No packages found</p>
-          <p className="text-xs text-gray-400 mt-1">Add a package using the button above</p>
+          <p className="font-semibold text-slate-700">No packages found</p>
+          <p className="mt-1 text-xs text-slate-500">Add a package using the button above</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -371,30 +376,30 @@ export default function PackagesPage() {
             const ws = getExpStatus(earliestPkg.expiryDate, alertDays)
 
             return (
-              <div key={group.pmId} className="bg-white rounded-2xl overflow-hidden shadow-[0_2px_12px_-2px_rgba(0,0,0,0.07)] border border-gray-100">
+              <div key={group.pmId} className="dashboard-surface overflow-hidden border-slate-200/80">
                 {/* Group header */}
                 <button
                   onClick={() => setExpandedPm(isExpanded ? null : group.pmId)}
-                  className="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-50/50 transition-colors"
+                  className="flex w-full items-center gap-4 px-5 py-4 transition-colors hover:bg-slate-50/70"
                 >
-                  <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-lg ${ws.bg}`}>
-                    {ws.icon}
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${ws.bg} shadow-sm`}>
+                    <ws.icon className="h-5 w-5" style={{ color: ws.color }} />
                   </div>
                   <div className="flex-1 text-left">
-                    <p className="text-sm font-bold text-gray-900">{group.label}</p>
-                    <p className="text-xs text-gray-400">{group.items.length} package{group.items.length !== 1 ? "s" : ""}</p>
+                    <p className="text-sm font-semibold text-slate-900">{group.label}</p>
+                    <p className="mt-0.5 text-xs text-slate-500">{group.items.length} package{group.items.length !== 1 ? "s" : ""}</p>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${ws.badge}`}>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${ws.badge}`}>
                       {ws.label}
                     </span>
-                    {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400"/> : <ChevronDown className="w-4 h-4 text-gray-400"/>}
+                    {isExpanded ? <ChevronUp className="h-4 w-4 text-slate-400"/> : <ChevronDown className="h-4 w-4 text-slate-400"/>}
                   </div>
                 </button>
 
                 {/* Expanded packages */}
                 {isExpanded && (
-                  <div className="border-t border-gray-100 divide-y divide-gray-50">
+                  <div className="divide-y divide-slate-100 border-t border-slate-100">
                     {group.items
                       .slice()
                       .sort((a: MedPackage, b: MedPackage) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime())
@@ -402,49 +407,49 @@ export default function PackagesPage() {
                         const s      = getExpStatus(pkg.expiryDate, alertDays)
                         const expFmt = format(new Date(pkg.expiryDate), "dd MMM yyyy")
                         return (
-                          <div key={pkg.id} className={`flex items-center gap-4 px-5 py-3.5 ${s.bg}`}>
-                            {/* Expiry ring indicator */}
-                            <div className="shrink-0 text-center w-12">
-                              <p className="text-lg font-black leading-none" style={{ color: s.color }}>
+                          <div key={pkg.id} className={`flex items-center gap-4 px-5 py-4 ${s.bg}`}>
+                            {/* Days indicator */}
+                            <div className="w-14 shrink-0 text-center">
+                              <p className="text-xl font-semibold leading-none" style={{ color: s.color }}>
                                 {s.key === "expired" ? "EXP" : s.days}
                               </p>
-                              <p className="text-[9px] text-gray-400 font-semibold uppercase">
-                                {s.key === "expired" ? "days ago" : "days"}
+                              <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-500">
+                                {s.key === "expired" ? "days ago" : "days left"}
                               </p>
                             </div>
 
                             {/* Info */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${s.badge}`}>{s.label}</span>
-                                {pkg.opened && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700">Opened</span>}
-                                {pkg.lotNumber && <span className="text-[10px] text-gray-500 font-mono">Lot: {pkg.lotNumber}</span>}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${s.badge}`}>{s.label}</span>
+                                {pkg.opened && <span className="rounded-full bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700">Opened</span>}
+                                {pkg.lotNumber && <span className="font-mono text-[10px] text-slate-500">Lot: {pkg.lotNumber}</span>}
                               </div>
-                              <p className="text-xs text-gray-600 mt-1">
+                              <p className="mt-1 text-xs text-slate-600">
                                 <span className="font-semibold">{pkg.quantity} {pkg.unitType}{pkg.quantity !== 1 ? "s" : ""}</span>
-                                <span className="text-gray-400"> · Expires {expFmt}</span>
+                                <span className="text-slate-500"> - Expires {expFmt}</span>
                               </p>
-                              {pkg.notes && <p className="text-[11px] text-gray-400 mt-0.5 italic">{pkg.notes}</p>}
+                              {pkg.notes && <p className="mt-0.5 text-[11px] italic text-slate-500">{pkg.notes}</p>}
                             </div>
 
                             {/* Actions */}
-                            <div className="shrink-0 flex items-center gap-1">
+                            <div className="flex shrink-0 items-center gap-1">
                               <button
                                 onClick={() => { setEditTarget(pkg); setModal("edit") }}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/80 transition-colors"
+                                className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-white/90"
                                 title="Edit package"
                               >
-                                <Pencil className="w-3.5 h-3.5 text-gray-500"/>
+                                <Pencil className="h-3.5 w-3.5 text-slate-500"/>
                               </button>
                               <button
                                 onClick={() => deletePackage(pkg.id)}
                                 disabled={deleting === pkg.id}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 transition-colors"
+                                className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-red-50"
                                 title="Delete package"
                               >
                                 {deleting === pkg.id
-                                  ? <span className="w-3 h-3 border-2 border-red-200 border-t-red-500 rounded-full animate-spin"/>
-                                  : <Trash2 className="w-3.5 h-3.5 text-red-400"/>
+                                  ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-red-200 border-t-red-500"/>
+                                  : <Trash2 className="h-3.5 w-3.5 text-red-400"/>
                                 }
                               </button>
                             </div>
@@ -461,9 +466,9 @@ export default function PackagesPage() {
                           setModal("add")
                         }
                       }}
-                      className="w-full flex items-center gap-2 px-5 py-3 text-xs font-semibold text-violet-600 hover:bg-violet-50/50 transition-colors"
+                      className="flex w-full items-center gap-2 px-5 py-3 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-50/60"
                     >
-                      <Plus className="w-3.5 h-3.5"/> Add another package for this medication
+                      <Plus className="h-3.5 w-3.5"/> Add another package for this medication
                     </button>
                   </div>
                 )}
@@ -485,9 +490,5 @@ export default function PackagesPage() {
     </div>
   )
 }
-
-
-
-
 
 

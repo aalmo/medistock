@@ -50,9 +50,9 @@ function DonutRing({ pct, color, track, size = 40 }: { pct: number; color: strin
 export function InventoryStatusChart({ data }: { data: InventoryDataPoint[] }) {
   if (!data || data.length === 0) {
     return (
-      <div className="h-[220px] flex flex-col items-center justify-center gap-3">
-        <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center text-2xl">💊</div>
-        <p className="text-xs font-semibold text-gray-400">No inventory data yet</p>
+      <div className="flex h-[220px] flex-col items-center justify-center gap-2">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-sm font-semibold text-slate-500">0</div>
+        <p className="text-xs font-medium text-slate-500">No inventory data yet</p>
       </div>
     )
   }
@@ -71,10 +71,10 @@ export function InventoryStatusChart({ data }: { data: InventoryDataPoint[] }) {
     <div className="flex flex-col gap-3">
 
       {/* ── Summary strip ── */}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex flex-wrap items-center gap-2">
         {alertCount > 0 && (
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"/>
+          <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-700">
+            <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse"/>
             {alertCount} need attention
           </span>
         )}
@@ -101,13 +101,12 @@ export function InventoryStatusChart({ data }: { data: InventoryDataPoint[] }) {
             <div
               key={i}
               className={`
-                group flex items-center gap-3 p-2.5 rounded-xl border transition-all duration-200
-                bg-white hover:${s.glow}
+                group flex items-center gap-3 rounded-xl border p-2.5 transition-all duration-200
                 ${s.key === "critical" || s.key === "empty"
-                  ? "border-red-100 bg-red-50/40"
+                  ? "border-red-100 bg-red-50/35"
                   : s.key === "low"
-                  ? "border-amber-100 bg-amber-50/30"
-                  : "border-gray-100"}
+                  ? "border-amber-100 bg-amber-50/25"
+                  : "border-slate-200/70 bg-white"}
               `}
             >
               {/* donut ring */}
@@ -124,14 +123,14 @@ export function InventoryStatusChart({ data }: { data: InventoryDataPoint[] }) {
               {/* content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs font-bold text-gray-800 truncate leading-tight" title={item.name}>
+                  <p className="truncate text-xs font-semibold leading-tight text-slate-800" title={item.name}>
                     {item.name}
                   </p>
                   <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                    <span className="text-[11px] font-black" style={{ color: s.color }}>
+                    <span className="text-[11px] font-semibold" style={{ color: s.color }}>
                       {item.pills % 1 === 0 ? item.pills : item.pills.toFixed(1)}
                     </span>
-                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${s.badgeBg} ${s.badgeText} ${s.badgeBorder}`}>
+                    <span className={`rounded-full border px-1.5 py-0.5 text-[9px] font-semibold ${s.badgeBg} ${s.badgeText} ${s.badgeBorder}`}>
                       {s.label}
                     </span>
                   </div>
@@ -153,7 +152,7 @@ export function InventoryStatusChart({ data }: { data: InventoryDataPoint[] }) {
 
                 {/* days remaining estimate */}
                 {daysEst !== null && (
-                  <p className="text-[9px] text-gray-400 mt-0.5 font-medium">
+                  <p className="mt-0.5 text-[9px] font-medium text-slate-500">
                     ~{daysEst === 0 ? "0" : daysEst} day{daysEst !== 1 ? "s" : ""} remaining
                   </p>
                 )}

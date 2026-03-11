@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import {
-  Users, Pill, AlertTriangle, Clock, Activity, TrendingUp,
+  Users, Pill, Clock, Activity, TrendingUp,
   TrendingDown, ArrowRight, CheckCircle2, Package,
-  Wind, Droplets, Syringe, Zap, FlaskConical, CalendarClock, Boxes
+  Wind, Droplets, Syringe, Zap, FlaskConical, Boxes,
+  ShieldAlert, ShieldCheck
 } from "lucide-react"
 import { AdherenceChart } from "@/components/dashboard/AdherenceChart"
 import { InventoryStatusChart } from "@/components/dashboard/InventoryStatusChart"
@@ -49,29 +50,23 @@ function KPI({
   sub?: string; gradient: string; accent: string; trend?: string; trendUp?: boolean
 }) {
   return (
-    <div className="
-      group relative overflow-hidden rounded-2xl p-5 bg-white
-      shadow-[0_2px_16px_-2px_rgba(0,0,0,0.08),0_1px_3px_rgba(0,0,0,0.04)]
-      hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.12)]
-      hover:-translate-y-1 transition-all duration-250 cursor-default
-    ">
-      {/* decorative blob */}
-      <div className={`absolute -top-8 -right-8 w-28 h-28 rounded-full opacity-[0.07] bg-gradient-to-br ${gradient} transition-transform duration-500 group-hover:scale-125`} />
+    <div className="dashboard-surface group relative overflow-hidden p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_20px_42px_-22px_rgba(15,23,42,0.45)]">
+      <div className={`absolute -top-10 -right-10 h-28 w-28 rounded-full bg-gradient-to-br ${gradient} opacity-[0.07] transition-transform duration-500 group-hover:scale-110`} />
 
-      <div className="flex items-start justify-between relative">
-        <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">{label}</p>
-          <p className={`mt-2 text-[2.1rem] font-black leading-none tracking-tight ${accent}`}>{value}</p>
-          {sub && <p className="mt-1.5 text-xs text-gray-400 font-medium">{sub}</p>}
+      <div className="relative flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{label}</p>
+          <p className={`mt-2 text-4xl font-semibold leading-none tracking-tight ${accent}`}>{value}</p>
+          {sub && <p className="mt-1.5 text-xs font-medium text-slate-500">{sub}</p>}
           {trend && (
-            <div className={`mt-2.5 inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${trendUp ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
-              {trendUp ? <TrendingUp className="w-3 h-3"/> : <TrendingDown className="w-3 h-3"/>}
+            <div className={`mt-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${trendUp ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
+              {trendUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
               {trend}
             </div>
           )}
         </div>
-        <div className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center bg-gradient-to-br ${gradient} shadow-[0_4px_12px_-2px_rgba(0,0,0,0.18)]`}>
-          <Icon className="w-5 h-5 text-white" />
+        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} shadow-[0_8px_20px_-10px_rgba(15,23,42,0.5)]`}>
+          <Icon className="h-5 w-5 text-white" />
         </div>
       </div>
     </div>
@@ -107,14 +102,16 @@ export default function DashboardPage() {
 
   if (loading) return (
     <div className="space-y-5 animate-pulse">
-      <div className="h-8 w-64 bg-gray-100 rounded-xl" />
+      <div className="h-20 rounded-2xl bg-muted" />
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        {[...Array(6)].map((_, i) => <div key={i} className="h-36 bg-gray-100 rounded-2xl" />)}
+        {[...Array(6)].map((_, i) => <div key={i} className="h-36 bg-muted rounded-2xl" />)}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="h-72 bg-gray-100 rounded-2xl" />
-        <div className="lg:col-span-2 h-72 bg-gray-100 rounded-2xl" />
+      <div className="h-16 rounded-2xl bg-muted" />
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div className="lg:col-span-3 h-72 bg-muted rounded-2xl" />
+        <div className="lg:col-span-2 h-72 bg-muted rounded-2xl" />
       </div>
+      <div className="h-64 rounded-2xl bg-muted" />
     </div>
   )
 
@@ -125,26 +122,22 @@ export default function DashboardPage() {
   const progressColor  = donePercent === 100 ? "#10b981" : donePercent >= 50 ? "#3b82f6" : "#f59e0b"
 
   return (
-    <div className="space-y-6 max-w-7xl">
+    <div className="relative w-full space-y-6 pb-3">
+      <div className="pointer-events-none absolute inset-x-0 -top-8 -z-10 h-48 rounded-3xl bg-gradient-to-r from-indigo-100/40 via-sky-100/40 to-violet-100/40 blur-2xl" />
 
       {/* ── Header ── */}
-      <div className="flex items-center justify-between">
+      <div className="dashboard-surface flex items-center justify-between p-5">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-400 mt-0.5 font-medium">{format(today, "EEEE, MMMM d, yyyy")}</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Dashboard</h1>
+          <p className="mt-1 text-sm font-medium text-slate-500">{format(today, "EEEE, MMMM d, yyyy")}</p>
         </div>
-        <Link href="/patients" className="
-          inline-flex items-center gap-1.5 text-sm font-semibold
-          px-4 py-2 rounded-xl bg-white border border-gray-200
-          shadow-sm hover:shadow-md hover:-translate-y-px
-          transition-all duration-150 text-gray-700
-        ">
-          All Patients <ArrowRight className="w-3.5 h-3.5" />
+        <Link href="/patients" className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:-translate-y-px hover:shadow-[0_12px_24px_-12px_rgba(15,23,42,0.35)]">
+          All Patients <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
 
       {/* ── KPI Row ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <KPI
           icon={Users} label="Total Patients" value={data.totalPatients}
           sub="under active care"
@@ -166,7 +159,7 @@ export default function DashboardPage() {
           trendUp={data.adherenceRate >= 80}
         />
         <KPI
-          icon={data.lowStockCount > 0 ? AlertTriangle : CheckCircle2}
+          icon={data.lowStockCount > 0 ? ShieldAlert : ShieldCheck}
           label="Low Stock Alerts" value={data.lowStockCount}
           sub={data.lowStockCount === 0 ? "All stocked up" : "need restocking"}
           gradient={data.lowStockCount > 0 ? "from-red-500 to-rose-600" : "from-green-500 to-emerald-600"}
@@ -175,7 +168,7 @@ export default function DashboardPage() {
           trendUp={data.lowStockCount === 0}
         />
         <KPI
-          icon={data.expiredPkgCount > 0 ? AlertTriangle : CalendarClock}
+          icon={data.expiredPkgCount > 0 ? ShieldAlert : ShieldCheck}
           label="Expired Packages" value={data.expiredPkgCount}
           sub={data.expiredPkgCount === 0 ? "None expired" : "dispose immediately"}
           gradient={data.expiredPkgCount > 0 ? "from-red-600 to-rose-700" : "from-slate-400 to-slate-500"}
@@ -196,41 +189,37 @@ export default function DashboardPage() {
 
       {/* ── Today progress + Adherence ring ── */}
       {data.dueTodayCount > 0 && (
-        <div className="
-          bg-white rounded-2xl p-5
-          shadow-[0_2px_16px_-2px_rgba(0,0,0,0.07),0_1px_3px_rgba(0,0,0,0.04)]
-          flex items-center gap-6
-        ">
+        <div className="dashboard-surface flex items-center gap-6 p-6">
           {/* Ring */}
           <div className="relative shrink-0">
-            <RingProgress percent={donePercent} color={progressColor} size={72} />
+            <RingProgress percent={donePercent} color={progressColor} size={76} />
             <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700">{donePercent}%</span>
           </div>
           {/* Bar + labels */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-sm font-bold text-gray-900">Today's Progress</p>
-                <p className="text-xs text-gray-400">{data.takenTodayCount} of {data.dueTodayCount} doses completed</p>
+                <p className="text-sm font-semibold text-slate-900">Today's Progress</p>
+                <p className="mt-0.5 text-xs text-slate-500">{data.takenTodayCount} of {data.dueTodayCount} doses completed</p>
               </div>
-              <div className="flex items-center gap-4 text-center">
+              <div className="flex items-center gap-5 text-center">
                 <div>
-                  <p className="text-lg font-black text-emerald-600">{data.takenTodayCount}</p>
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Taken</p>
+                  <p className="text-xl font-black text-emerald-600">{data.takenTodayCount}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Taken</p>
                 </div>
-                <div className="w-px h-8 bg-gray-100"/>
+                <div className="w-px h-8 bg-slate-100"/>
                 <div>
-                  <p className="text-lg font-black text-blue-500">{data.pendingTodayCount}</p>
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Pending</p>
+                  <p className="text-xl font-black text-blue-500">{data.pendingTodayCount}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Pending</p>
                 </div>
-                <div className="w-px h-8 bg-gray-100"/>
+                <div className="w-px h-8 bg-slate-100"/>
                 <div>
-                  <p className="text-lg font-black text-gray-300">{data.dueTodayCount - data.takenTodayCount - data.pendingTodayCount}</p>
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Missed</p>
+                  <p className="text-xl font-black text-slate-300">{data.dueTodayCount - data.takenTodayCount - data.pendingTodayCount}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Missed</p>
                 </div>
               </div>
             </div>
-            <div className="h-2.5 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
               <div
                 className="h-full rounded-full transition-all duration-700"
                 style={{ width: `${donePercent}%`, background: progressColor }}
@@ -241,28 +230,28 @@ export default function DashboardPage() {
       )}
 
       {/* ── Charts row ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
         {/* Inventory Status — 3 cols (bigger) */}
-        <div className="lg:col-span-3 bg-white rounded-2xl p-5 shadow-[0_2px_16px_-2px_rgba(0,0,0,0.07),0_1px_3px_rgba(0,0,0,0.04)]">
-          <div className="flex items-center justify-between mb-4">
+        <div className="dashboard-surface p-6 lg:col-span-3">
+          <div className="mb-5 flex items-center justify-between">
             <div>
-              <p className="text-sm font-bold text-gray-900">Inventory Status</p>
-              <p className="text-xs text-gray-400">Stock vs threshold</p>
+              <p className="text-sm font-semibold text-slate-900">Inventory Status</p>
+              <p className="mt-0.5 text-xs text-slate-500">Stock vs threshold</p>
             </div>
           </div>
           <InventoryStatusChart data={data.inventoryChartData} />
         </div>
 
         {/* Adherence trend — 2 cols */}
-        <div className="lg:col-span-2 bg-white rounded-2xl p-5 shadow-[0_2px_16px_-2px_rgba(0,0,0,0.07),0_1px_3px_rgba(0,0,0,0.04)]">
-          <div className="flex items-center justify-between mb-4">
+        <div className="dashboard-surface p-6 lg:col-span-2">
+          <div className="mb-5 flex items-center justify-between">
             <div>
-              <p className="text-sm font-bold text-gray-900">Adherence Trend</p>
-              <p className="text-xs text-gray-400">Last 7 days</p>
+              <p className="text-sm font-semibold text-slate-900">Adherence Trend</p>
+              <p className="mt-0.5 text-xs text-slate-500">Last 7 days</p>
             </div>
-            <div className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
+            <div className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
               style={{ background: `${adherenceColor}18`, color: adherenceColor }}>
-              <div className="w-1.5 h-1.5 rounded-full" style={{ background: adherenceColor }}/>
+              <div className="h-1.5 w-1.5 rounded-full" style={{ background: adherenceColor }}/>
               {data.adherenceRate}% avg
             </div>
           </div>
@@ -271,27 +260,27 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Upcoming Doses ── */}
-      <div className="bg-white rounded-2xl overflow-hidden shadow-[0_2px_16px_-2px_rgba(0,0,0,0.07),0_1px_3px_rgba(0,0,0,0.04)]">
-        <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+      <div className="dashboard-surface overflow-hidden">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
           <div>
-            <h2 className="text-sm font-bold text-gray-900">Upcoming Doses</h2>
-            <p className="text-xs text-gray-400">Next 24 hours — pending only</p>
+            <h2 className="text-sm font-semibold text-slate-900">Upcoming Doses</h2>
+            <p className="mt-0.5 text-xs text-slate-500">Next 24 hours · pending only</p>
           </div>
-          <Link href="/schedules" className="text-xs text-blue-600 font-semibold hover:underline flex items-center gap-1">
-            Full calendar <ArrowRight className="w-3 h-3" />
+          <Link href="/schedules" className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline">
+            Full calendar <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
 
         {data.upcomingDoses.length === 0 ? (
           <div className="py-16 text-center">
-            <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-emerald-50 flex items-center justify-center">
-              <CheckCircle2 className="w-7 h-7 text-emerald-400" />
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50">
+              <CheckCircle2 className="h-7 w-7 text-emerald-400" />
             </div>
-            <p className="text-sm font-semibold text-gray-700">All caught up!</p>
-            <p className="text-xs text-gray-400 mt-1">No pending doses in the next 24 hours</p>
+            <p className="text-sm font-semibold text-slate-700">All caught up!</p>
+            <p className="mt-1 text-xs text-slate-500">No pending doses in the next 24 hours</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50/80">
+          <div className="divide-y divide-slate-100/90">
             {data.upcomingDoses.map((dose, idx) => {
               const theme     = UNIT_THEME[dose.unitType] ?? UNIT_THEME.pill
               const Icon      = theme.icon
@@ -302,10 +291,10 @@ export default function DashboardPage() {
               const isSoon = minutesUntil >= 0 && minutesUntil <= 60
 
               return (
-                <div key={dose.id} className="px-5 py-3.5 flex items-center gap-4 hover:bg-gray-50/50 transition-colors group">
+                <div key={dose.id} className="group flex items-center gap-4 px-6 py-4 transition-colors hover:bg-slate-50/70">
                   {/* index + icon */}
                   <div className="shrink-0 flex items-center gap-3">
-                    <span className="text-[11px] font-bold text-gray-300 w-4 text-right">{idx + 1}</span>
+                    <span className="w-4 text-right text-[11px] font-bold text-slate-300">{idx + 1}</span>
                     <div className={`w-9 h-9 rounded-xl ${theme.iconBg} flex items-center justify-center`}>
                       <Icon className={`w-4 h-4 ${theme.iconColor}`} />
                     </div>
@@ -313,19 +302,19 @@ export default function DashboardPage() {
 
                   {/* name + patient */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-gray-900 truncate leading-tight">
+                    <p className="truncate text-sm font-semibold leading-tight text-slate-900">
                       {displayName}
-                      {dose.strength && <span className="ml-1.5 text-xs font-normal text-gray-400">({dose.strength})</span>}
+                      {dose.strength && <span className="ml-1.5 text-xs font-normal text-slate-400">({dose.strength})</span>}
                     </p>
-                    <p className="text-xs text-gray-400 truncate">
+                    <p className="truncate text-xs text-slate-500">
                       {dose.patientName} · {dose.pillsPerDose} {dose.unitType}{dose.pillsPerDose !== 1 ? "s" : ""}
                     </p>
                   </div>
 
                   {/* time badge */}
                   <div className="shrink-0 text-right">
-                    <p className={`text-sm font-black ${theme.iconColor}`}>{format(doseTime, "HH:mm")}</p>
-                    <p className="text-[10px] text-gray-400">
+                    <p className={`text-sm font-bold ${theme.iconColor}`}>{format(doseTime, "HH:mm")}</p>
+                    <p className="text-[10px] text-slate-400">
                       {isSoon ? `in ${minutesUntil}m` : isToday ? "today" : format(doseTime, "MMM d")}
                     </p>
                   </div>
@@ -333,12 +322,12 @@ export default function DashboardPage() {
                   {/* status pill */}
                   <div className="shrink-0">
                     {isSoon ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"/>Soon
+                      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse"/>Soon
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"/>Pending
+                      <span className="inline-flex items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-600">
+                        <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse"/>Pending
                       </span>
                     )}
                   </div>

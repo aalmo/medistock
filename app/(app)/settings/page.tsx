@@ -107,7 +107,7 @@ export default function SettingsPage() {
     setSettings(s => ({ ...s, [k]: v }))
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5">
+    <div className="w-full max-w-3xl space-y-5">
 
       {/* Header */}
       <div className="flex items-center justify-between">

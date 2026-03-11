@@ -7,7 +7,6 @@ import { ArrowLeft, Plus, Pill, Edit, Trash2, AlertTriangle, CheckCircle, Wind, 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getInitials, calculateAge, formatDate, formatDateTime } from "@/lib/utils"
 import { calcAvgDailyPills, calcDaysRemaining, getStockStatus, getFrequencyLabel, parseJsonArray, unitLabel, computeContainersRemaining } from "@/lib/calculations"
@@ -80,10 +79,10 @@ export default function PatientDetailPage() {
   }
 
   if (loading) return (
-    <div className="space-y-4 animate-pulse max-w-5xl">
-      <div className="h-20 bg-muted rounded-2xl" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[1,2,3].map(i => <div key={i} className="h-56 bg-muted rounded-2xl" />)}
+    <div className="max-w-6xl space-y-5 animate-pulse">
+      <div className="h-24 rounded-2xl bg-muted" />
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        {[1,2,3].map(i => <div key={i} className="h-56 rounded-2xl bg-muted" />)}
       </div>
     </div>
   )
@@ -92,52 +91,53 @@ export default function PatientDetailPage() {
   const age = calculateAge(patient.dob)
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="relative max-w-6xl space-y-6 pb-4">
+      <div className="pointer-events-none absolute inset-x-0 -top-8 -z-10 h-44 rounded-3xl bg-gradient-to-r from-blue-100/40 via-violet-100/40 to-cyan-100/40 blur-2xl" />
       {/* ── Header ── */}
-      <div className="flex items-start justify-between">
+      <div className="dashboard-surface flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/patients"><Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button></Link>
+          <Link href="/patients"><Button variant="ghost" size="icon" className="rounded-xl"><ArrowLeft className="h-4 w-4" /></Button></Link>
           <Avatar className="h-14 w-14 ring-2 ring-white shadow-md">
             <AvatarImage src={patient.avatarUrl ?? ""} />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-violet-600 text-white text-lg font-bold">
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-violet-600 text-lg font-semibold text-white">
               {getInitials(patient.name)}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{patient.name}</h1>
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              {age !== null && <span className="text-sm text-muted-foreground">Age {age}</span>}
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{patient.name}</h1>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              {age !== null && <span className="text-sm text-slate-500">Age {age}</span>}
               {patient.gender && <Badge variant="outline" className="text-xs">{patient.gender}</Badge>}
-              {patient.dob && <span className="text-sm text-muted-foreground">• DOB: {formatDate(patient.dob)}</span>}
+              {patient.dob && <span className="text-sm text-slate-500">- DOB: {formatDate(patient.dob)}</span>}
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setAddMedOpen(true)} className="shadow-sm">
-            <Plus className="w-4 h-4 mr-2" /> Add Medication
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => setAddMedOpen(true)} className="rounded-xl border-slate-200 bg-white shadow-sm">
+            <Plus className="mr-2 h-4 w-4" /> Add Medication
           </Button>
           <Link href={`/patients/${patient.id}/edit`}>
-            <Button variant="outline" className="shadow-sm"><Edit className="w-4 h-4 mr-2" /> Edit</Button>
+            <Button variant="outline" className="rounded-xl border-slate-200 bg-white shadow-sm"><Edit className="mr-2 h-4 w-4" /> Edit</Button>
           </Link>
         </div>
       </div>
 
       {patient.notes && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800 flex items-start gap-2">
+        <div className="dashboard-surface flex items-start gap-2 border-amber-200/70 bg-amber-50/70 px-4 py-3 text-sm text-amber-800">
           <span className="mt-0.5">📋</span>
           <span>{patient.notes}</span>
         </div>
       )}
 
       <Tabs defaultValue="medications">
-        <TabsList className="bg-muted/60">
+        <TabsList className="dashboard-surface grid h-auto w-full grid-cols-1 gap-1 p-1 sm:grid-cols-3">
           <TabsTrigger value="medications">Medications ({patient.patientMedications.length})</TabsTrigger>
           <TabsTrigger value="today">Today's Doses</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
 
         {/* ── Medications Tab ── */}
-        <TabsContent value="medications" className="mt-5">
+        <TabsContent value="medications" className="mt-6">
           {patient.patientMedications.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground">
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center">
@@ -147,7 +147,7 @@ export default function PatientDetailPage() {
               <p className="text-sm mt-1">Click "Add Medication" to get started</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {patient.patientMedications.map((pm: any) => {
                 const avgDaily = pm.schedules.reduce((s: number, sch: any) =>
                   s + calcAvgDailyPills({
@@ -189,46 +189,41 @@ export default function PatientDetailPage() {
                   <div
                     key={pm.id}
                     className={`
-                      relative rounded-2xl overflow-hidden
-                      bg-white
-                      shadow-[0_4px_24px_-4px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.04)]
-                      hover:shadow-[0_8px_32px_-4px_rgba(0,0,0,0.14),0_2px_8px_rgba(0,0,0,0.06)]
-                      hover:-translate-y-0.5
-                      transition-all duration-200
-                      ${status === 'critical' ? 'ring-1 ring-red-200' : status === 'low' ? 'ring-1 ring-amber-200' : ''}
+                      dashboard-surface relative overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_20px_36px_-24px_rgba(15,23,42,0.42)]
+                      ${status === 'critical' ? 'border-red-200/80' : status === 'low' ? 'border-amber-200/80' : ''}
                     `}
                   >
                     {/* ── Coloured top stripe ── */}
                     <div className={`h-1.5 w-full bg-gradient-to-r ${theme.gradient}`} />
 
-                    <div className="p-5">
+                    <div className="p-6">
                       {/* ── Top row: icon + name + actions ── */}
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start justify-between gap-4">
 
                         {/* Left: icon + name block */}
-                        <div className="flex items-start gap-3 min-w-0">
-                          <div className={`shrink-0 w-11 h-11 rounded-xl ${theme.iconBg} flex items-center justify-center shadow-sm`}>
-                            <Icon className={`w-5 h-5 ${theme.iconColor}`} />
+                        <div className="flex min-w-0 items-start gap-3">
+                          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${theme.iconBg} shadow-sm`}>
+                            <Icon className={`h-5 w-5 ${theme.iconColor}`} />
                           </div>
 
                           <div className="min-w-0">
                             {/* Brand / Primary name */}
-                            <h3 className="font-bold text-base leading-tight text-gray-900 truncate">
+                            <h3 className="truncate text-base font-semibold leading-tight text-slate-900">
                               {medTitle}
                               {strengthStr && (
-                                <span className="ml-1.5 text-sm font-semibold text-gray-500">({strengthStr})</span>
+                                <span className="ml-1.5 text-sm font-medium text-slate-500">({strengthStr})</span>
                               )}
                             </h3>
 
                             {/* Generic name */}
                             {genericLine && (
-                              <p className="text-xs text-muted-foreground mt-0.5 italic truncate">{genericLine}</p>
+                              <p className="mt-0.5 truncate text-xs italic text-slate-500">{genericLine}</p>
                             )}
 
                             {/* Dosage + strength per dose */}
                             {doseDisplay && (
-                              <div className="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-gray-100 text-xs font-medium text-gray-700">
-                                <Icon className={`w-3 h-3 ${theme.iconColor}`} />
+                              <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                                <Icon className={`h-3 w-3 ${theme.iconColor}`} />
                                 {doseDisplay}
                               </div>
                             )}
@@ -236,8 +231,8 @@ export default function PatientDetailPage() {
                         </div>
 
                         {/* Right: status badge + actions */}
-                        <div className="flex items-center gap-1 shrink-0">
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${statusCfg.labelClass}`}>
+                        <div className="flex shrink-0 items-center gap-1">
+                          <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${statusCfg.labelClass}`}>
                             {statusCfg.label}
                           </span>
                           <Button
@@ -258,13 +253,13 @@ export default function PatientDetailPage() {
                       </div>
 
                       {/* ── Stats row ── */}
-                      <div className="mt-4 grid grid-cols-3 gap-2">
+                      <div className="mt-5 grid grid-cols-3 gap-3">
                         {/* Stock */}
-                        <div className="rounded-xl bg-gray-50 px-3 py-2.5 text-center">
-                          <p className="text-xl font-bold text-gray-900 leading-none">
+                        <div className="rounded-xl bg-slate-50 px-3 py-3 text-center">
+                          <p className="text-xl font-semibold leading-none text-slate-900">
                             {pm.pillsInStock % 1 === 0 ? pm.pillsInStock : pm.pillsInStock.toFixed(1)}
                           </p>
-                          <p className="text-[10px] text-muted-foreground mt-1 leading-tight">
+                          <p className="mt-1 text-[10px] leading-tight text-slate-500">
                             {unitLabel(unit)}
                             {containersLeft !== null && (
                               <span className={`block font-medium ${theme.iconColor}`}>
@@ -275,31 +270,31 @@ export default function PatientDetailPage() {
                         </div>
 
                         {/* Days */}
-                        <div className={`rounded-xl px-3 py-2.5 text-center ${
+                        <div className={`rounded-xl px-3 py-3 text-center ${
                           status === 'critical' ? 'bg-red-50' : status === 'low' ? 'bg-amber-50' : 'bg-emerald-50'
                         }`}>
-                          <p className={`text-xl font-bold leading-none ${
+                          <p className={`text-xl font-semibold leading-none ${
                             status === 'critical' ? 'text-red-600' : status === 'low' ? 'text-amber-600' : 'text-emerald-600'
                           }`}>
                             {isFinite(daysLeft) ? daysLeft : "∞"}
                           </p>
-                          <p className="text-[10px] text-muted-foreground mt-1">days left</p>
+                          <p className="mt-1 text-[10px] text-slate-500">days left</p>
                         </div>
 
                         {/* Per day */}
-                        <div className="rounded-xl bg-gray-50 px-3 py-2.5 text-center">
-                          <p className="text-xl font-bold text-gray-900 leading-none">{avgDaily.toFixed(1)}</p>
-                          <p className="text-[10px] text-muted-foreground mt-1">{unitLabel(unit)}/day</p>
+                        <div className="rounded-xl bg-slate-50 px-3 py-3 text-center">
+                          <p className="text-xl font-semibold leading-none text-slate-900">{avgDaily.toFixed(1)}</p>
+                          <p className="mt-1 text-[10px] text-slate-500">{unitLabel(unit)}/day</p>
                         </div>
                       </div>
 
                       {/* ── Progress bar ── */}
-                      <div className="mt-3">
-                        <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                      <div className="mt-4">
+                        <div className="mb-1 flex justify-between text-[10px] text-slate-500">
                           <span>Stock level</span>
                           <span>{Math.round(stockPct)}%</span>
                         </div>
-                        <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                           <div
                             className={`h-full rounded-full transition-all duration-500 ${statusCfg.bar}`}
                             style={{ width: `${stockPct}%` }}
@@ -309,12 +304,12 @@ export default function PatientDetailPage() {
 
                       {/* ── Schedule strip ── */}
                       {schedule && times.length > 0 && (
-                        <div className="mt-3 flex items-center gap-2 flex-wrap">
-                          <span className={`text-[11px] font-medium px-2 py-0.5 rounded-md bg-gray-100 text-gray-600`}>
+                        <div className="mt-4 flex flex-wrap items-center gap-2">
+                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
                             {getFrequencyLabel(times.length)}
                           </span>
                           {times.map((t: string, i: number) => (
-                            <span key={i} className={`text-[11px] font-mono px-2 py-0.5 rounded-md ${theme.iconBg} ${theme.iconColor}`}>
+                            <span key={i} className={`rounded-md px-2 py-0.5 font-mono text-[11px] ${theme.iconBg} ${theme.iconColor}`}>
                               {t}
                             </span>
                           ))}
@@ -329,7 +324,7 @@ export default function PatientDetailPage() {
         </TabsContent>
 
         {/* ── Today's Doses Tab ── */}
-        <TabsContent value="today" className="mt-4 space-y-3">
+        <TabsContent value="today" className="mt-5 space-y-3">
           {patient.patientMedications.flatMap((pm: any) =>
             pm.schedules.flatMap((sch: any) =>
               sch.doseLogs
@@ -339,16 +334,16 @@ export default function PatientDetailPage() {
                   const theme = UNIT_THEME[unit] ?? UNIT_THEME.other
                   const Icon = theme.icon
                   return (
-                    <div key={log.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center justify-between gap-3">
+                    <div key={log.id} className="dashboard-surface flex items-center justify-between gap-3 p-4">
                       <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-xl ${theme.iconBg} flex items-center justify-center`}>
-                          <Icon className={`w-4 h-4 ${theme.iconColor}`} />
+                        <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${theme.iconBg}`}>
+                          <Icon className={`h-4 w-4 ${theme.iconColor}`} />
                         </div>
                         <div>
-                          <p className="font-semibold text-sm">{pm.medication.name}
-                            {pm.medication.strength && <span className="text-muted-foreground font-normal ml-1">({pm.medication.strength})</span>}
+                          <p className="text-sm font-semibold text-slate-900">{pm.medication.name}
+                            {pm.medication.strength && <span className="ml-1 font-normal text-slate-500">({pm.medication.strength})</span>}
                           </p>
-                          <p className="text-xs text-muted-foreground">{formatDateTime(log.scheduledAt)} · {sch.pillsPerDose} {unitLabel(unit, sch.pillsPerDose)}</p>
+                          <p className="text-xs text-slate-500">{formatDateTime(log.scheduledAt)} - {sch.pillsPerDose} {unitLabel(unit, sch.pillsPerDose)}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
@@ -373,24 +368,24 @@ export default function PatientDetailPage() {
             )
           )}
           {patient.patientMedications.flatMap((pm: any) => pm.schedules.flatMap((s: any) => s.doseLogs.filter((l: any) => new Date(l.scheduledAt).toDateString() === new Date().toDateString()))).length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <CheckCircle className="w-10 h-10 mx-auto mb-3 opacity-20" />
+            <div className="dashboard-surface py-12 text-center text-slate-500">
+              <CheckCircle className="mx-auto mb-3 h-10 w-10 opacity-20" />
               <p className="font-medium">No doses scheduled for today</p>
             </div>
           )}
         </TabsContent>
 
         {/* ── History Tab ── */}
-        <TabsContent value="history" className="mt-4 space-y-2">
+        <TabsContent value="history" className="mt-5 space-y-2.5">
           {patient.patientMedications.flatMap((pm: any) =>
             pm.schedules.flatMap((sch: any) =>
               sch.doseLogs.map((log: any) => (
-                <div key={log.id} className="flex items-center justify-between text-sm bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3 gap-3">
-                  <span className="text-muted-foreground text-xs w-36 shrink-0">{formatDateTime(log.scheduledAt)}</span>
-                  <span className="font-medium truncate flex-1">{pm.medication.name}
-                    {pm.medication.strength && <span className="text-muted-foreground font-normal ml-1 text-xs">({pm.medication.strength})</span>}
+                <div key={log.id} className="dashboard-surface flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                  <span className="w-36 shrink-0 text-xs text-slate-500">{formatDateTime(log.scheduledAt)}</span>
+                  <span className="flex-1 truncate font-medium text-slate-900">{pm.medication.name}
+                    {pm.medication.strength && <span className="ml-1 text-xs font-normal text-slate-500">({pm.medication.strength})</span>}
                   </span>
-                  <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border shrink-0 ${
+                  <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
                     log.status === "TAKEN"   ? "bg-emerald-100 text-emerald-700 border-emerald-200" :
                     log.status === "MISSED"  ? "bg-red-100 text-red-700 border-red-200" :
                                               "bg-gray-100 text-gray-600 border-gray-200"

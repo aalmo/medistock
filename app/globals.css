@@ -32,7 +32,19 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[#f5f6fa] text-slate-900 antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv02","cv03","cv04","cv11";
+  }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
   }
 }
 
+@layer components {
+  .dashboard-surface {
+    @apply rounded-2xl border border-white/60 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.06),0_16px_40px_-16px_rgba(15,23,42,0.18)];
+  }
+}

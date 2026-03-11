@@ -9,11 +9,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!session) redirect("/login")
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-[#f5f6fa]">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <Navbar />
-        <main className="flex-1 p-6 overflow-auto">{children}</main>
+        <main className="flex-1 px-8 py-6 overflow-auto">{children}</main>
         <footer className="px-6 py-3 text-xs text-muted-foreground border-t bg-white text-center">
           ⚕️ MediStock is a medication tracking tool only — not medical advice. Always consult a qualified healthcare professional.
         </footer>

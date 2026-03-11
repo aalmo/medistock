@@ -14,17 +14,17 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   const v = payload[0].value as number
   const color = v >= 80 ? "#10b981" : v >= 60 ? "#f59e0b" : "#ef4444"
   return (
-    <div className="bg-white border border-gray-100 rounded-xl shadow-lg px-3.5 py-2.5 text-xs">
-      <p className="font-bold text-gray-500 mb-1">{label}</p>
+    <div className="rounded-xl border border-slate-200 bg-white/95 px-3.5 py-2.5 text-xs shadow-[0_16px_26px_-20px_rgba(15,23,42,0.45)]">
+      <p className="mb-1 font-semibold text-slate-500">{label}</p>
       <div className="flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full" style={{ background: color }}/>
-        <span className="font-black text-base" style={{ color }}>{v}%</span>
-        <span className="text-gray-400">adherence</span>
+        <span className="h-2 w-2 rounded-full" style={{ background: color }}/>
+        <span className="text-base font-semibold" style={{ color }}>{v}%</span>
+        <span className="text-slate-500">adherence</span>
       </div>
       {payload[0]?.payload && (
-        <div className="flex gap-3 mt-1.5 pt-1.5 border-t border-gray-100">
-          <span className="text-emerald-600 font-semibold">✓ {payload[0].payload.taken} taken</span>
-          <span className="text-red-400 font-semibold">✗ {payload[0].payload.missed} missed</span>
+        <div className="mt-1.5 flex gap-3 border-t border-slate-100 pt-1.5">
+          <span className="font-semibold text-emerald-600">Taken: {payload[0].payload.taken}</span>
+          <span className="font-semibold text-red-500">Missed: {payload[0].payload.missed}</span>
         </div>
       )}
     </div>
@@ -44,18 +44,18 @@ export function AdherenceChart({ data }: { data: AdherenceDataPoint[] }) {
             <stop offset="100%" stopColor="#3b82f6" stopOpacity={0}/>
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false}/>
+        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false}/>
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 11, fill: "#9ca3af", fontWeight: 600 }}
+          tick={{ fontSize: 11, fill: "#94a3b8", fontWeight: 600 }}
           tickLine={false} axisLine={false}
         />
         <YAxis
           domain={[0, 100]} tickFormatter={v => `${v}%`}
-          tick={{ fontSize: 10, fill: "#d1d5db" }}
+          tick={{ fontSize: 10, fill: "#94a3b8" }}
           tickLine={false} axisLine={false}
         />
-        <Tooltip content={<CustomTooltip />} cursor={{ stroke: "#e5e7eb", strokeWidth: 1 }}/>
+        <Tooltip content={<CustomTooltip />} cursor={{ stroke: "#e2e8f0", strokeWidth: 1 }}/>
         <ReferenceLine y={avg} stroke="#3b82f6" strokeDasharray="4 4" strokeWidth={1.5} strokeOpacity={0.4}/>
         <Area
           type="monotone" dataKey="adherence"
