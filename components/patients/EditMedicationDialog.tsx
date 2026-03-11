@@ -29,7 +29,7 @@ interface PatientMedication {
   lowStockThreshold: number
   lowStockPills: number
   notes: string | null
-  medication: { name: string; strength?: string | null; form?: string | null }
+  medication: { id?: string; name: string; brandName?: string | null; genericName?: string | null; strength?: string | null; form?: string | null }
   schedules: Schedule[]
 }
 
@@ -66,6 +66,11 @@ export function EditMedicationDialog({ pm, open, onClose }: EditMedicationDialog
   const { toast } = useToast()
   const [saving, setSaving] = useState(false)
 
+  // Drug info fields
+  const [medicationName, setMedicationName] = useState("")
+  const [brandName, setBrandName] = useState("")
+  const [strength, setStrength] = useState("")
+
   // Inventory fields
   const [unitType, setUnitType] = useState("pill")
   const [pillsInStock, setPillsInStock] = useState(0)
@@ -86,6 +91,11 @@ export function EditMedicationDialog({ pm, open, onClose }: EditMedicationDialog
 
   useEffect(() => {
     if (!pm) return
+    // Drug info
+    setMedicationName(pm.medication.name ?? "")
+    setBrandName(pm.medication.brandName ?? "")
+    setStrength(pm.medication.strength ?? "")
+    // Inventory
     setUnitType(pm.unitType ?? "pill")
     setPillsInStock(pm.pillsInStock)
     setDosesPerContainer(pm.dosesPerContainer ?? 1)
@@ -134,6 +144,9 @@ export function EditMedicationDialog({ pm, open, onClose }: EditMedicationDialog
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          medicationName: medicationName.trim(),
+          brandName:      brandName.trim(),
+          strength:       strength.trim(),
           unitType,
           pillsInStock: totalUnits,
           dosesPerContainer,
@@ -174,20 +187,58 @@ export function EditMedicationDialog({ pm, open, onClose }: EditMedicationDialog
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            Edit — {pm.medication.name}
-            {pm.medication.strength && (
+            Edit — {medicationName || pm.medication.name}
+            {(strength || pm.medication.strength) && (
               <span className="ml-2 text-sm font-normal text-muted-foreground">
-                {pm.medication.strength} {pm.medication.form}
+                {strength || pm.medication.strength}
               </span>
             )}
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="inventory">
+        <Tabs defaultValue="drug">
           <TabsList className="w-full">
+            <TabsTrigger value="drug"      className="flex-1">Drug Info</TabsTrigger>
             <TabsTrigger value="inventory" className="flex-1">Inventory</TabsTrigger>
-            <TabsTrigger value="schedule" className="flex-1">Schedule</TabsTrigger>
+            <TabsTrigger value="schedule"  className="flex-1">Schedule</TabsTrigger>
           </TabsList>
+
+          {/* ── Drug Info tab ── */}
+          <TabsContent value="drug" className="space-y-4 pt-2">
+            <div>
+              <Label htmlFor="med-name">Drug name (generic / INN)</Label>
+              <Input
+                id="med-name"
+                value={medicationName}
+                onChange={e => setMedicationName(e.target.value)}
+                placeholder="e.g. Ibuprofen"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="brand-name">Brand / Trade name</Label>
+              <Input
+                id="brand-name"
+                value={brandName}
+                onChange={e => setBrandName(e.target.value)}
+                placeholder="e.g. Nurofen, Advil"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="strength">Dose strength (e.g. 400 mg, 5 ml, 10 mcg)</Label>
+              <Input
+                id="strength"
+                value={strength}
+                onChange={e => setStrength(e.target.value)}
+                placeholder="e.g. 500 mg"
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Include the unit — e.g. <code className="bg-muted px-1 rounded">200 mg</code>, <code className="bg-muted px-1 rounded">5 ml</code>, <code className="bg-muted px-1 rounded">25 mcg</code>
+              </p>
+            </div>
+          </TabsContent>
 
           {/* ── Inventory tab ── */}
           <TabsContent value="inventory" className="space-y-4 pt-2">

@@ -27,8 +27,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   const body = await req.json()
 
-  // Check if updating PatientMedication (stock/thresholds/unit)
-  if (body.pillsInStock !== undefined || body.lowStockThreshold !== undefined || body.unitType !== undefined) {
+  // Check if updating PatientMedication (stock/thresholds/unit/drug info)
+  if (body.pillsInStock !== undefined || body.lowStockThreshold !== undefined || body.unitType !== undefined || body.medicationName !== undefined) {
     const pm = await prisma.patientMedication.findUnique({ where: { id: params.id } })
     if (!pm) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
@@ -51,6 +51,18 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       where: { id: params.id },
       data: updateData,
     })
+
+    // Update the linked Medication record if drug details were provided
+    if (body.medicationName !== undefined || body.brandName !== undefined || body.strength !== undefined) {
+      const medUpdate: Record<string, string | null> = {}
+      if (body.medicationName !== undefined) medUpdate.name = body.medicationName
+      if (body.brandName !== undefined)      medUpdate.brandName = body.brandName || null
+      if (body.strength !== undefined)       medUpdate.strength  = body.strength  || null
+      await prisma.medication.update({
+        where: { id: pm.medicationId },
+        data: medUpdate,
+      })
+    }
 
     // Log inventory event if stock changed
     if (newStock !== oldStock) {
