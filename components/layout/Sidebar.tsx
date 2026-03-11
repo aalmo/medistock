@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   LayoutDashboard, Users, Pill, Calendar, Bell,
-  Settings, Package, LogOut, Activity, Boxes, Languages
+  Settings, Package, LogOut, Activity, Boxes, Languages, X
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
@@ -13,7 +13,12 @@ import { useT } from "@/lib/i18n/context"
 import { LOCALE_LIST } from "@/lib/i18n/locales"
 import type { Locale } from "@/lib/i18n/types"
 
-export function Sidebar() {
+interface SidebarProps {
+  open?: boolean
+  onClose?: () => void
+}
+
+export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname()
   const { t, locale, setLocale } = useT()
 
@@ -28,14 +33,21 @@ export function Sidebar() {
     { href: "/settings",      label: t.nav.settings,      icon: Settings },
   ]
 
-  return (
-    <aside className="flex flex-col w-64 min-h-screen bg-slate-900 text-white px-4 py-6">
-      {/* Logo */}
-      <div className="flex items-center gap-2 mb-8 px-2">
-        <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
-          <Activity className="w-5 h-5 text-white" />
+  const sidebarContent = (
+    <aside className="flex flex-col w-64 h-full bg-slate-900 text-white px-4 py-6">
+      {/* Logo + close btn (mobile) */}
+      <div className="flex items-center justify-between mb-8 px-2">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+            <Activity className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-xl font-bold">MediStock</span>
         </div>
-        <span className="text-xl font-bold">MediStock</span>
+        {onClose && (
+          <button onClick={onClose} className="lg:hidden p-1 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-white transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Nav */}
@@ -44,7 +56,7 @@ export function Sidebar() {
           const Icon = item.icon
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
           return (
-            <Link key={item.href} href={item.href}>
+            <Link key={item.href} href={item.href} onClick={onClose}>
               <span className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                 isActive
@@ -79,7 +91,7 @@ export function Sidebar() {
               )}
             >
               <span className="text-sm leading-none">{meta.flag}</span>
-              <span className="hidden sm:inline text-[10px]">{code.toUpperCase()}</span>
+              <span className="text-[10px]">{code.toUpperCase()}</span>
             </button>
           ))}
         </div>
@@ -97,5 +109,33 @@ export function Sidebar() {
         </Button>
       </div>
     </aside>
+  )
+
+  return (
+    <>
+      {/* ── Desktop: always visible ── */}
+      <div className="hidden lg:flex flex-col w-64 min-h-screen shrink-0">
+        {sidebarContent}
+      </div>
+
+      {/* ── Mobile: slide-in drawer ── */}
+      {/* Backdrop */}
+      <div
+        className={cn(
+          "lg:hidden fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300",
+          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )}
+        onClick={onClose}
+      />
+      {/* Drawer */}
+      <div
+        className={cn(
+          "lg:hidden fixed inset-y-0 left-0 z-50 w-64 transition-transform duration-300 ease-in-out",
+          open ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {sidebarContent}
+      </div>
+    </>
   )
 }

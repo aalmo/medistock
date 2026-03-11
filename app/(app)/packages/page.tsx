@@ -294,8 +294,7 @@ export default function PackagesPage() {
       </div>
 
       {/* ── KPI strip ── */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {[
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">        {[
           { key: "expired",  label: t.packages.expired,          value: expiredCount,  gradient: "from-red-500 to-rose-600",     accent: "text-red-700",    icon: ShieldAlert },
           { key: "critical", label: t.packages.criticalLabel,     value: criticalCount, gradient: "from-red-400 to-orange-500",   accent: "text-orange-700", icon: Clock4 },
           { key: "warning",  label: `${t.packages.warningLabel} (<${alertDays}d)`, value: warningCount, gradient: "from-amber-400 to-yellow-500", accent: "text-amber-700", icon: Timer },

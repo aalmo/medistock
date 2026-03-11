@@ -161,7 +161,7 @@ export default function InventoryPage() {
       </div>
 
       {/* ── KPI strip ── */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: t.inventory.criticalLabel, value: criticalCount, gradient: "from-red-500 to-rose-600",     accent: "text-red-700",    icon: ShieldAlert },
           { label: t.inventory.lowStockLabel, value: lowCount,      gradient: "from-amber-400 to-orange-500", accent: "text-amber-700",  icon: TrendingDown },
@@ -197,6 +197,7 @@ export default function InventoryPage() {
         </div>
       ) : (
         <div className="dashboard-surface overflow-hidden">
+          <div className="overflow-x-auto">
           {/* Table header */}
           <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] items-center gap-4 border-b border-slate-100 bg-slate-50/80 px-6 py-3">
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">{t.inventory.patientMed}</p>
@@ -266,6 +267,7 @@ export default function InventoryPage() {
                 </div>
               )
             })}
+          </div>
           </div>
         </div>
       )}

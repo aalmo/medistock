@@ -139,7 +139,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── KPI Row ── */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <KPI
           icon={Users} label={t.dashboard.totalPatients} value={data.totalPatients}
           sub={t.dashboard.underActiveCare}
@@ -191,7 +191,7 @@ export default function DashboardPage() {
 
       {/* ── Today progress + Adherence ring ── */}
       {data.dueTodayCount > 0 && (
-        <div className="dashboard-surface flex items-center gap-6 p-6">
+        <div className="dashboard-surface flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 p-6">
           <div className="relative shrink-0">
             <RingProgress percent={donePercent} color={progressColor} size={76} />
             <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700">{donePercent}%</span>
@@ -227,8 +227,8 @@ export default function DashboardPage() {
       )}
 
       {/* ── Charts row ── */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
-        <div className="dashboard-surface p-6 lg:col-span-3">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-5">
+        <div className="dashboard-surface p-6 xl:col-span-3">
           <div className="mb-5 flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-900">{t.dashboard.inventoryStatus}</p>
@@ -237,7 +237,7 @@ export default function DashboardPage() {
           </div>
           <InventoryStatusChart data={data.inventoryChartData} />
         </div>
-        <div className="dashboard-surface p-6 lg:col-span-2">
+        <div className="dashboard-surface p-6 xl:col-span-2">
           <div className="mb-5 flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-900">{t.dashboard.adherenceTrend}</p>

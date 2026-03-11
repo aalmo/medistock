@@ -117,7 +117,7 @@ export default function MedicationsPage() {
 
       {/* ── Grid ── */}
       {loading ? (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="h-56 animate-pulse rounded-2xl bg-slate-100" />
           ))}
@@ -131,7 +131,7 @@ export default function MedicationsPage() {
           <p className="mt-1 text-sm">Medications appear here once added to a patient</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map(med => {
             const theme = themeForMed(med)
             const Icon  = theme.icon

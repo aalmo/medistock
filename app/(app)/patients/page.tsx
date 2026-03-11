@@ -64,7 +64,7 @@ export default function PatientsPage() {
 
       {/* Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 animate-pulse">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 animate-pulse">
           {[...Array(8)].map((_, i) => <div key={i} className="h-40 bg-muted rounded-2xl" />)}
         </div>
       ) : filtered.length === 0 ? (
@@ -76,7 +76,7 @@ export default function PatientsPage() {
           <p className="mt-1 text-xs text-slate-500">{t.patients.noPatientsHint}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map(patient => {
             const age = calculateAge(patient.dob)
             const medCount = patient.patientMedications.filter(m => m.active).length

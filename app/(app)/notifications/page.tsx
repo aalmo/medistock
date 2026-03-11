@@ -128,7 +128,7 @@ export default function NotificationsPage() {
       </div>
 
       {/* ── KPI strip ── */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {[
           { label: t.notifications.totalLabel, value: notifications.length, gradient: "from-slate-500 to-slate-600",   accent: "text-slate-700",   icon: MessageSquare },
           { label: t.notifications.unread,     value: unread,               gradient: "from-blue-500 to-indigo-600",   accent: "text-blue-700",    icon: Bell },
@@ -167,7 +167,7 @@ export default function NotificationsPage() {
           {Object.entries(groups).map(([date, items]) => (
             <div key={date}>
               <p className="mb-2.5 px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">{date}</p>
-              <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
                 {items.map(n => {
                   const cfg = TYPE_CONFIG_T[n.type as keyof typeof TYPE_CONFIG_T] ?? DEFAULT_CONFIG_T
                   const Icon = cfg.iconEl

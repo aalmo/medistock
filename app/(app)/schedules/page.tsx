@@ -80,108 +80,85 @@ export default function SchedulesPage() {
       {/* ── Weekly Calendar ── */}
       <div className="dashboard-surface overflow-hidden">
         {/* calendar header */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4 sm:px-5">
           <div>
             <h2 className="text-sm font-semibold text-slate-900">
-              {format(weekStart, "MMMM d")} - {format(addDays(weekStart, 6), "MMMM d, yyyy")}
+              {format(weekStart, "MMM d")} – {format(addDays(weekStart, 6), "MMM d, yyyy")}
             </h2>
             {weekOffset === 0 && <p className="text-xs text-slate-500">Current week</p>}
           </div>
           <div className="flex items-center gap-1">
-            <button
-              onClick={() => setWeekOffset(o => o - 1)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 transition-colors hover:bg-slate-50"
-            >
+            <button onClick={() => setWeekOffset(o => o - 1)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 transition-colors hover:bg-slate-50">
               <ChevronLeft className="h-4 w-4 text-slate-500" />
             </button>
-            <button
-              onClick={() => setWeekOffset(0)}
-              className="h-8 rounded-lg border border-slate-200 px-2.5 text-xs font-medium transition-colors hover:bg-slate-50"
-            >
+            <button onClick={() => setWeekOffset(0)}
+              className="h-8 rounded-lg border border-slate-200 px-2.5 text-xs font-medium transition-colors hover:bg-slate-50">
               Today
             </button>
-            <button
-              onClick={() => setWeekOffset(o => o + 1)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 transition-colors hover:bg-slate-50"
-            >
+            <button onClick={() => setWeekOffset(o => o + 1)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 transition-colors hover:bg-slate-50">
               <ChevronRight className="h-4 w-4 text-slate-500" />
             </button>
           </div>
         </div>
 
-        {/* day columns */}
-        <div className="p-4">
-          {/* Day headers */}
-          <div className="mb-3 grid grid-cols-7 gap-2">
-            {weekDays.map(d => {
-              const isToday = isSameDay(d, today)
-              return (
-                <div key={d.toISOString()} className="text-center">
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
-                    {format(d, "EEE")}
-                  </p>
-                  <div className={`
-                    mx-auto mt-1 flex h-7 w-7 items-center justify-center rounded-full
-                    text-sm font-semibold
-                    ${isToday
-                      ? "bg-blue-600 text-white shadow-[0_2px_8px_rgba(59,130,246,0.35)]"
-                      : "text-slate-700"}
-                  `}>
-                    {format(d, "d")}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* Dose cells */}
-          <div className="grid grid-cols-7 gap-2">
-            {weekDays.map(day => {
-              const isToday = isSameDay(day, today)
-              const dayEvents = allEvents
-                .filter(e => isSameDay(new Date(e.scheduledAt), day))
-                .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
-
-              return (
-                <div
-                  key={day.toISOString()}
-                  className={`
-                    min-h-[112px] space-y-1 rounded-xl p-1.5
-                    ${isToday
-                      ? "bg-blue-50 ring-1 ring-blue-200"
-                      : "bg-slate-50/70"}
-                  `}
-                >
-                  {dayEvents.length === 0 && (
-                    <div className="flex h-full items-center justify-center">
-                      <span className="text-[10px] text-slate-300">-</span>
+        {/* day columns — horizontally scrollable on mobile */}
+        <div className="overflow-x-auto">
+          <div className="p-4 min-w-[560px]">
+            {/* Day headers */}
+            <div className="mb-3 grid grid-cols-7 gap-2">
+              {weekDays.map(d => {
+                const isToday = isSameDay(d, today)
+                return (
+                  <div key={d.toISOString()} className="text-center">
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
+                      {format(d, "EEE")}
+                    </p>
+                    <div className={`mx-auto mt-1 flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold
+                      ${isToday ? "bg-blue-600 text-white shadow-[0_2px_8px_rgba(59,130,246,0.35)]" : "text-slate-700"}`}>
+                      {format(d, "d")}
                     </div>
-                  )}
-                  {dayEvents.slice(0, 4).map((ev: any) => {
-                    const theme = UNIT_THEME[ev.unitType] ?? UNIT_THEME.pill
-                    return (
-                      <div
-                        key={ev.id}
-                        title={`${ev.patientName}: ${ev.brandName ?? ev.medName}${ev.strength ? ` (${ev.strength})` : ""} at ${format(new Date(ev.scheduledAt), "HH:mm")}`}
-                        className={`
-                          flex cursor-default items-center gap-1 rounded-lg border px-1.5 py-1
-                          text-[10px] font-medium
-                          ${theme.bg} ${theme.text} ${theme.border}
-                        `}
-                      >
-                        <StatusIcon status={ev.status} />
-                        <span className="truncate leading-none">
-                          {ev.brandName ?? ev.medName}
-                        </span>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Dose cells */}
+            <div className="grid grid-cols-7 gap-2">
+              {weekDays.map(day => {
+                const isToday = isSameDay(day, today)
+                const dayEvents = allEvents
+                  .filter(e => isSameDay(new Date(e.scheduledAt), day))
+                  .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+
+                return (
+                  <div key={day.toISOString()}
+                    className={`min-h-[112px] space-y-1 rounded-xl p-1.5
+                      ${isToday ? "bg-blue-50 ring-1 ring-blue-200" : "bg-slate-50/70"}`}>
+                    {dayEvents.length === 0 && (
+                      <div className="flex h-full items-center justify-center">
+                        <span className="text-[10px] text-slate-300">-</span>
                       </div>
-                    )
-                  })}
-                  {dayEvents.length > 4 && (
-                    <p className="text-center text-[9px] text-slate-500">+{dayEvents.length - 4} more</p>
-                  )}
-                </div>
-              )
-            })}
+                    )}
+                    {dayEvents.slice(0, 4).map((ev: any) => {
+                      const theme = UNIT_THEME[ev.unitType] ?? UNIT_THEME.pill
+                      return (
+                        <div key={ev.id}
+                          title={`${ev.patientName}: ${ev.brandName ?? ev.medName}${ev.strength ? ` (${ev.strength})` : ""} at ${format(new Date(ev.scheduledAt), "HH:mm")}`}
+                          className={`flex cursor-default items-center gap-1 rounded-lg border px-1.5 py-1 text-[10px] font-medium ${theme.bg} ${theme.text} ${theme.border}`}>
+                          <StatusIcon status={ev.status} />
+                          <span className="truncate leading-none">{ev.brandName ?? ev.medName}</span>
+                        </div>
+                      )
+                    })}
+                    {dayEvents.length > 4 && (
+                      <p className="text-center text-[9px] text-slate-500">+{dayEvents.length - 4} more</p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
       </div>
@@ -200,16 +177,14 @@ export default function SchedulesPage() {
         ) : (
           <div className="space-y-3">
             {schedules.map(sch => {
-              const unit   = (sch.patientMedication as any)?.unitType ?? "pill"
-              const theme  = UNIT_THEME[unit] ?? UNIT_THEME.pill
-              const Icon   = theme.icon
-              const times  = parseJsonArray<string>(sch.timesOfDay, ["08:00"])
+              const unit  = (sch.patientMedication as any)?.unitType ?? "pill"
+              const theme = UNIT_THEME[unit] ?? UNIT_THEME.pill
+              const Icon  = theme.icon
+              const times = parseJsonArray<string>(sch.timesOfDay, ["08:00"])
               const medName   = sch.patientMedication?.medication?.name ?? "Unknown"
               const brandName = sch.patientMedication?.medication?.brandName
               const strength  = sch.patientMedication?.medication?.strength
               const patient   = sch.patientMedication?.patient?.name ?? ""
-
-              // Dose log summary
               const logs    = sch.doseLogs ?? []
               const total   = logs.length
               const taken   = logs.filter((l: any) => l.status === "TAKEN").length
@@ -217,19 +192,15 @@ export default function SchedulesPage() {
               const pending = logs.filter((l: any) => l.status === "PENDING").length
 
               return (
-                <div
-                  key={sch.id}
-                  className="dashboard-surface flex items-center gap-4 px-5 py-4 transition-all duration-150 hover:-translate-y-px hover:shadow-[0_18px_30px_-24px_rgba(15,23,42,0.5)]"
-                >
+                <div key={sch.id}
+                  className="dashboard-surface flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:gap-4 sm:px-5 transition-all duration-150 hover:-translate-y-px hover:shadow-[0_18px_30px_-24px_rgba(15,23,42,0.5)]">
                   <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${theme.bg} ${theme.border}`}>
                     <Icon className={`h-5 w-5 ${theme.text}`} />
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-1.5">
-                      <p className="truncate text-sm font-semibold text-slate-900">
-                        {brandName ?? medName}
-                      </p>
+                      <p className="truncate text-sm font-semibold text-slate-900">{brandName ?? medName}</p>
                       {strength && <span className="shrink-0 text-xs text-slate-400">({strength})</span>}
                     </div>
                     <p className="truncate text-xs text-slate-500">{patient}</p>
@@ -237,8 +208,8 @@ export default function SchedulesPage() {
                       <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
                         {getFrequencyLabel(times.length)}
                       </span>
-                      {times.map((t, i) => (
-                        <span key={i} className={`rounded-md px-1.5 py-0.5 font-mono text-[10px] ${theme.bg} ${theme.text}`}>{t}</span>
+                      {times.map((tt, i) => (
+                        <span key={i} className={`rounded-md px-1.5 py-0.5 font-mono text-[10px] ${theme.bg} ${theme.text}`}>{tt}</span>
                       ))}
                       <span className={`rounded-md px-2 py-0.5 text-[10px] font-medium ${sch.active ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
                         {sch.active ? "Active" : "Inactive"}
@@ -246,21 +217,11 @@ export default function SchedulesPage() {
                     </div>
                   </div>
 
-                  {/* Dose stats */}
                   {total > 0 && (
-                    <div className="shrink-0 flex items-center gap-3 text-center">
-                      <div>
-                        <p className="text-sm font-semibold text-emerald-600">{taken}</p>
-                        <p className="text-[9px] text-slate-500">taken</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-red-500">{missed}</p>
-                        <p className="text-[9px] text-slate-500">missed</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-blue-500">{pending}</p>
-                        <p className="text-[9px] text-slate-500">pending</p>
-                      </div>
+                    <div className="flex items-center gap-4 sm:gap-3 text-center">
+                      <div><p className="text-sm font-semibold text-emerald-600">{taken}</p><p className="text-[9px] text-slate-500">taken</p></div>
+                      <div><p className="text-sm font-semibold text-red-500">{missed}</p><p className="text-[9px] text-slate-500">missed</p></div>
+                      <div><p className="text-sm font-semibold text-blue-500">{pending}</p><p className="text-[9px] text-slate-500">pending</p></div>
                     </div>
                   )}
                 </div>

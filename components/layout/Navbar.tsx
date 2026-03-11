@@ -1,19 +1,29 @@
 "use client"
 
 import { useSession } from "next-auth/react"
-import { Bell } from "lucide-react"
+import { Menu } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
 import { NotificationBell } from "@/components/notifications/NotificationBell"
 import { getInitials } from "@/lib/utils"
 
-export function Navbar() {
+interface NavbarProps {
+  onMenuClick?: () => void
+}
+
+export function Navbar({ onMenuClick }: NavbarProps) {
   const { data: session } = useSession()
 
   return (
-    <header className="h-16 border-b bg-white flex items-center justify-between px-6">
-      <div className="flex items-center gap-2">
-        {/* Breadcrumb can be added here */}
+    <header className="h-16 border-b bg-white flex items-center justify-between px-4 md:px-6 shrink-0">
+      <div className="flex items-center gap-3">
+        {/* Hamburger — mobile only */}
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+          aria-label="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
       </div>
 
       <div className="flex items-center gap-3">
