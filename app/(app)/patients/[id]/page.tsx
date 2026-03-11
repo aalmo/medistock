@@ -315,6 +315,28 @@ export default function PatientDetailPage() {
                           ))}
                         </div>
                       )}
+
+                      {/* ── Tags ── */}
+                      {(() => {
+                        const rawTags = (pm.medication as any).tags
+                        const tagList: string[] = Array.isArray(rawTags)
+                          ? rawTags
+                          : typeof rawTags === "string"
+                          ? parseJsonArray<string>(rawTags, [])
+                          : []
+                        return tagList.length > 0 ? (
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            {tagList.map((tag: string) => (
+                              <span
+                                key={tag}
+                                className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-medium text-blue-600 border border-blue-100"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null
+                      })()}
                     </div>
                   </div>
                 )

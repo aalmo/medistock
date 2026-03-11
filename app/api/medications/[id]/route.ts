@@ -53,11 +53,12 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     })
 
     // Update the linked Medication record if drug details were provided
-    if (body.medicationName !== undefined || body.brandName !== undefined || body.strength !== undefined) {
+    if (body.medicationName !== undefined || body.brandName !== undefined || body.strength !== undefined || body.tags !== undefined) {
       const medUpdate: Record<string, string | null> = {}
-      if (body.medicationName !== undefined) medUpdate.name = body.medicationName
-      if (body.brandName !== undefined)      medUpdate.brandName = body.brandName || null
-      if (body.strength !== undefined)       medUpdate.strength  = body.strength  || null
+      if (body.medicationName !== undefined) medUpdate.name      = body.medicationName
+      if (body.brandName      !== undefined) medUpdate.brandName = body.brandName || null
+      if (body.strength       !== undefined) medUpdate.strength  = body.strength  || null
+      if (body.tags           !== undefined) medUpdate.tags      = JSON.stringify(Array.isArray(body.tags) ? body.tags : [])
       await prisma.medication.update({
         where: { id: pm.medicationId },
         data: medUpdate,
@@ -82,9 +83,14 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const parsed = medicationSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: "Validation error", details: parsed.error.issues }, { status: 400 })
 
+  const { tags, ...rest } = parsed.data
   const updated = await prisma.medication.update({
     where: { id: params.id },
-    data: { ...parsed.data, imageUrl: parsed.data.imageUrl || null }
+    data: {
+      ...rest,
+      imageUrl: rest.imageUrl || null,
+      tags: tags ? JSON.stringify(tags) : "[]",
+    }
   })
 
   return NextResponse.json({ data: updated })

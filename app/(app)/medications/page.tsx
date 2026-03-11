@@ -37,6 +37,7 @@ interface Medication {
   strength: string | null
   unit: string | null
   rxcui: string | null
+  tags: string | null         // JSON array stored as string
   ingredients: string | null
   warnings: string | null
   patientMedications: Array<{
@@ -56,6 +57,7 @@ interface Medication {
 export default function MedicationsPage() {
   const [meds, setMeds] = useState<Medication[]>([])
   const [search, setSearch] = useState("")
+  const [activeTag, setActiveTag] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState<string | null>(null)
   const { toast } = useToast()
@@ -87,11 +89,26 @@ export default function MedicationsPage() {
     }
   }
 
-  const filtered = meds.filter(m =>
-    m.name.toLowerCase().includes(search.toLowerCase()) ||
-    (m.brandName ?? "").toLowerCase().includes(search.toLowerCase()) ||
-    (m.genericName ?? "").toLowerCase().includes(search.toLowerCase())
-  )
+  const allTags = Array.from(
+    new Set(
+      meds.flatMap(m =>
+        typeof m.tags === "string" ? parseJsonArray<string>(m.tags, []) : []
+      )
+    )
+  ).sort()
+
+  const filtered = meds.filter(m => {
+    const matchSearch =
+      m.name.toLowerCase().includes(search.toLowerCase()) ||
+      (m.brandName ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      (m.genericName ?? "").toLowerCase().includes(search.toLowerCase())
+    if (!matchSearch) return false
+    if (activeTag) {
+      const tagList: string[] = typeof m.tags === "string" ? parseJsonArray<string>(m.tags, []) : []
+      return tagList.includes(activeTag)
+    }
+    return true
+  })
 
   return (
     <div className="relative w-full space-y-6 pb-3">
@@ -114,6 +131,35 @@ export default function MedicationsPage() {
           />
         </div>
       </div>
+
+      {/* ── Tag filter bar ── */}
+      {allTags.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setActiveTag(null)}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors border ${
+              activeTag === null
+                ? "bg-slate-900 text-white border-slate-900"
+                : "border-slate-200 bg-white text-slate-600 hover:border-slate-400"
+            }`}
+          >
+            All
+          </button>
+          {allTags.map(tag => (
+            <button
+              key={tag}
+              onClick={() => setActiveTag(prev => prev === tag ? null : tag)}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors border ${
+                activeTag === tag
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ── Grid ── */}
       {loading ? (
@@ -204,6 +250,30 @@ export default function MedicationsPage() {
                           {form}
                         </span>
                       )}
+
+                      {/* Tags */}
+                      {(() => {
+                        const tagList: string[] = typeof med.tags === "string"
+                          ? parseJsonArray<string>(med.tags, [])
+                          : []
+                        return tagList.length > 0 ? (
+                          <div className="mt-1.5 flex flex-wrap gap-1">
+                            {tagList.map(tag => (
+                              <button
+                                key={tag}
+                                onClick={() => setActiveTag(prev => prev === tag ? null : tag)}
+                                className={`rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                                  activeTag === tag
+                                    ? "border-blue-400 bg-blue-100 text-blue-700"
+                                    : "border-blue-100 bg-blue-50 text-blue-600 hover:border-blue-300"
+                                }`}
+                              >
+                                {tag}
+                              </button>
+                            ))}
+                          </div>
+                        ) : null
+                      })()}
                     </div>
                   </div>
 

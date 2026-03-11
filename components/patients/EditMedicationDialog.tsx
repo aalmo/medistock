@@ -9,8 +9,15 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2, Calculator } from "lucide-react"
+import { Loader2, Calculator, X, Plus } from "lucide-react"
 import { parseJsonArray, unitLabel, containerLabel, computeTotalUnitsFromContainers, computeContainersRemaining } from "@/lib/calculations"
+
+const PRESET_TAGS = [
+  "Blood Pressure", "Cardiac", "Diabetes", "Pain Relief", "Antibiotic",
+  "Anti-inflammatory", "Cholesterol", "Thyroid", "Asthma", "Anticoagulant",
+  "Antidepressant", "Anxiety", "Epilepsy", "Osteoporosis", "Vitamin / Supplement",
+  "Allergy", "Gastric / Acid Reflux", "Sleep", "Blood Thinner", "Immunosuppressant",
+]
 
 interface Schedule {
   id: string
@@ -70,6 +77,8 @@ export function EditMedicationDialog({ pm, open, onClose }: EditMedicationDialog
   const [medicationName, setMedicationName] = useState("")
   const [brandName, setBrandName] = useState("")
   const [strength, setStrength] = useState("")
+  const [tags, setTags] = useState<string[]>([])
+  const [tagInput, setTagInput] = useState("")
 
   // Inventory fields
   const [unitType, setUnitType] = useState("pill")
@@ -95,6 +104,13 @@ export function EditMedicationDialog({ pm, open, onClose }: EditMedicationDialog
     setMedicationName(pm.medication.name ?? "")
     setBrandName(pm.medication.brandName ?? "")
     setStrength(pm.medication.strength ?? "")
+    const rawTags = (pm.medication as any).tags
+    setTags(
+      Array.isArray(rawTags) ? rawTags
+      : typeof rawTags === "string" ? parseJsonArray<string>(rawTags, [])
+      : []
+    )
+    setTagInput("")
     // Inventory
     setUnitType(pm.unitType ?? "pill")
     setPillsInStock(pm.pillsInStock)
@@ -147,6 +163,7 @@ export function EditMedicationDialog({ pm, open, onClose }: EditMedicationDialog
           medicationName: medicationName.trim(),
           brandName:      brandName.trim(),
           strength:       strength.trim(),
+          tags,
           unitType,
           pillsInStock: totalUnits,
           dosesPerContainer,
@@ -237,6 +254,77 @@ export function EditMedicationDialog({ pm, open, onClose }: EditMedicationDialog
               <p className="text-xs text-muted-foreground mt-1">
                 Include the unit — e.g. <code className="bg-muted px-1 rounded">200 mg</code>, <code className="bg-muted px-1 rounded">5 ml</code>, <code className="bg-muted px-1 rounded">25 mcg</code>
               </p>
+            </div>
+
+            {/* Tags */}
+            <div>
+              <Label>Category Tags</Label>
+              {/* Selected tags */}
+              {tags.length > 0 && (
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {tags.map(tag => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => setTags(prev => prev.filter(t => t !== tag))}
+                        className="ml-0.5 rounded-full hover:text-blue-900"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Free-text input */}
+              <div className="mt-2 flex gap-2">
+                <Input
+                  value={tagInput}
+                  onChange={e => setTagInput(e.target.value)}
+                  onKeyDown={e => {
+                    if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
+                      e.preventDefault()
+                      const t = tagInput.trim()
+                      if (!tags.includes(t)) setTags(prev => [...prev, t])
+                      setTagInput("")
+                    }
+                  }}
+                  placeholder="Type a tag and press Enter…"
+                  className="flex-1 h-8 text-sm"
+                />
+                <Button
+                  type="button" size="sm" variant="outline"
+                  className="h-8 px-2"
+                  onClick={() => {
+                    const t = tagInput.trim()
+                    if (t && !tags.includes(t)) setTags(prev => [...prev, t])
+                    setTagInput("")
+                  }}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+
+              {/* Preset suggestions */}
+              <div className="mt-2">
+                <p className="text-[11px] text-muted-foreground mb-1.5">Quick add:</p>
+                <div className="flex flex-wrap gap-1">
+                  {PRESET_TAGS.filter(t => !tags.includes(t)).map(t => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setTags(prev => [...prev, t])}
+                      className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] text-slate-600 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+                    >
+                      + {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </TabsContent>
 
