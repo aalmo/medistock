@@ -1,6 +1,24 @@
+/* @import MUST be first — before any @tailwind directives */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * ── Arabic font ──────────────────────────────────────────────────────────
+ * Cairo (Google Fonts) is the active Arabic font.
+ * To use the local Al-Jazeera font instead, place AlJazeera-Regular.woff2
+ * in public/fonts/ and uncomment the @font-face block below.
+ *
+ * @font-face {
+ *   font-family: 'AlJazeera';
+ *   src: url('/fonts/AlJazeera-Regular.woff2') format('woff2');
+ *   font-weight: 400 700;
+ *   font-style: normal;
+ *   font-display: swap;
+ * }
+ */
 
 @layer base {
   :root {
@@ -46,5 +64,13 @@
 @layer components {
   .dashboard-surface {
     @apply rounded-2xl border border-white/60 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.06),0_16px_40px_-16px_rgba(15,23,42,0.18)];
+  }
+
+  /* ── Arabic / RTL font override ── */
+  .font-arabic,
+  .font-arabic * {
+    font-family: 'AlJazeera', 'Cairo', sans-serif !important;
+    letter-spacing: 0 !important;
+    line-height: 1.75 !important;
   }
 }

@@ -20,6 +20,18 @@ const I18nContext = createContext<I18nContextValue>({
   dir: "ltr",
 })
 
+function applyLocale(l: Locale) {
+  const html = document.documentElement
+  html.setAttribute("lang", l)
+  html.setAttribute("dir", LOCALES[l].dir)
+  // Add/remove the .font-arabic class on <body> so Cairo loads
+  if (l === "ar") {
+    document.body.classList.add("font-arabic")
+  } else {
+    document.body.classList.remove("font-arabic")
+  }
+}
+
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("en")
 
@@ -32,15 +44,12 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const setLocale = (l: Locale) => {
     setLocaleState(l)
     localStorage.setItem(STORAGE_KEY, l)
-    // Update <html> dir + lang for RTL support
-    document.documentElement.setAttribute("lang", l)
-    document.documentElement.setAttribute("dir", LOCALES[l].dir)
+    applyLocale(l)
   }
 
-  // Keep html attrs in sync on every render
+  // Keep html attrs in sync whenever locale changes
   useEffect(() => {
-    document.documentElement.setAttribute("lang", locale)
-    document.documentElement.setAttribute("dir", LOCALES[locale].dir)
+    applyLocale(locale)
   }, [locale])
 
   return (
@@ -54,4 +63,3 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 export function useT() {
   return useContext(I18nContext)
 }
-
