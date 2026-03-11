@@ -94,6 +94,12 @@ const en: Translation = {
     autoCompleteLabel: "Auto-complete summary", autoCompleteDesc: "When doses are auto-marked at end of day",
     preferencesFor: "Preferences for", smtpSetup: "SMTP email setup", days: "days",
     urgent: "1 day (urgent)", early: "30 days (early)", months6: "180 days (6 months)",
+    drugDatabase:         "Drug Database",
+    drugDatabaseSubtitle: "Source for medication search & autocomplete",
+    usDatabase:           "US Database",
+    usDatabaseDesc:       "RxNorm + openFDA — US brand & generic drugs",
+    euDatabase:           "EU Database",
+    euDatabaseDesc:       "ChEMBL (EMBL-EBI) — European INN & brand names",
   },
 }
 

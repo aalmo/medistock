@@ -247,6 +247,13 @@ export interface Translation {
     urgent:               string
     early:                string
     months6:              string
+    drugDatabase:         string
+    drugDatabaseSubtitle: string
+    usDatabase:           string
+    usDatabaseDesc:       string
+    euDatabase:           string
+    euDatabaseDesc:       string
   }
 }
 
+export type { Locale, Translation }

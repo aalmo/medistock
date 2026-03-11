@@ -21,6 +21,7 @@ model User {
   emailAlertLevel  String    @default("low")
   lowStockDays     Int       @default(7)
   expiryAlertDays  Int       @default(30)   // alert when expiry within this many days
+  drugDatabase     String    @default("us") // "us" = RxNorm/openFDA, "eu" = EMA/SPOR
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

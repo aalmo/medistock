@@ -10,7 +10,16 @@ const settingsSchema = z.object({
   emailNotifs:      z.boolean().optional(),
   emailAlertLevel:  z.enum(["off", "low", "critical"]).optional(),
   lowStockDays:     z.number().int().min(1).max(90).optional(),
+  expiryAlertDays:  z.number().int().min(1).max(365).optional(),
+  drugDatabase:     z.enum(["us", "eu"]).optional(),
 })
+
+const USER_SELECT = {
+  name: true, email: true, timezone: true,
+  emailNotifs: true, emailAlertLevel: true,
+  lowStockDays: true, expiryAlertDays: true,
+  drugDatabase: true,
+}
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -19,7 +28,7 @@ export async function GET() {
 
   const user = await prisma.user.findUnique({
     where:  { id: userId },
-    select: { name: true, email: true, timezone: true, emailNotifs: true, emailAlertLevel: true, lowStockDays: true, expiryAlertDays: true },
+    select: USER_SELECT,
   })
   return NextResponse.json({ data: user })
 }
@@ -36,8 +45,7 @@ export async function PATCH(req: NextRequest) {
   const updated = await prisma.user.update({
     where:  { id: userId },
     data:   parsed.data,
-    select: { name: true, email: true, timezone: true, emailNotifs: true, emailAlertLevel: true, lowStockDays: true, expiryAlertDays: true },
+    select: USER_SELECT,
   })
   return NextResponse.json({ data: updated })
 }
-

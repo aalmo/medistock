@@ -106,6 +106,12 @@ const de: Translation = {
     autoCompleteDesc: "Wenn Dosen am Tagesende automatisch markiert werden",
     preferencesFor: "Einstellungen für", smtpSetup: "SMTP-E-Mail-Einrichtung", days: "Tage",
     urgent: "1 Tag (dringend)", early: "30 Tage (frühzeitig)", months6: "180 Tage (6 Monate)",
+    drugDatabase:         "Arzneimitteldatenbank",
+    drugDatabaseSubtitle: "Quelle für Medikamentensuche",
+    usDatabase:           "US-Datenbank",
+    usDatabaseDesc:       "RxNorm + openFDA — US-Marken- und Generika",
+    euDatabase:           "EU-Datenbank",
+    euDatabaseDesc:       "ChEMBL (EMBL-EBI) — Europäische INN & Handelsnamen",
   },
 }
 

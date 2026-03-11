@@ -15,7 +15,7 @@ import ar from "./ar"
 export const LOCALES: Record<Locale, { label: string; flag: string; dir: "ltr" | "rtl" }> = {
   en: { label: "English",  flag: "🇬🇧", dir: "ltr" },
   de: { label: "Deutsch",  flag: "🇩🇪", dir: "ltr" },
-  ar: { label: "العربية", flag: "🇸🇦", dir: "rtl" },
+  ar: { label: "العربية", flag: "🇾🇪", dir: "rtl" },
 }
 
 export const translations = { en, de, ar }
