@@ -4,6 +4,15 @@ import { PrismaAdapter } from '@auth/prisma-adapter';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 
+interface AuthUser {
+  id: string
+  email?: string | null
+  name?: string | null
+  image?: string | null
+  role?: string | null
+  language?: string | null
+}
+
 export const authOptions: NextAuthOptions = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   adapter: PrismaAdapter(prisma) as any,
@@ -57,25 +66,26 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.role = user.role;
-        token.language = user.language; // propagate language
+        const u = user as AuthUser
+        token.id = u.id;
+        token.role = u.role ?? undefined;
+        token.language = u.language ?? undefined;
       }
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-        session.user.language = token.language as string; // propagate language
+        const u = session.user as AuthUser
+        u.id = token.id as string;
+        u.role = token.role as string;
+        u.language = token.language as string;
         // Validate the user still exists in DB (guards against stale tokens after DB reset)
         const exists = await prisma.user.findUnique({
           where: { id: token.id as string },
           select: { id: true },
         });
         if (!exists) {
-          // Returning empty session forces NextAuth to treat as unauthenticated
-          return { ...session, user: undefined as any, expires: new Date(0).toISOString() };
+          return { ...session, user: undefined, expires: new Date(0).toISOString() };
         }
       }
       return session;
