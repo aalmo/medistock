@@ -278,7 +278,7 @@ export default function InventoryPage() {
 
                   {/* Status badge */}
                   <div className="w-24 flex justify-center">
-                    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${cfg.badge}`}>
+                    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold whitespace-nowrap ${cfg.badge}`}>
                       <Icon className="h-3 w-3" />{cfg.label}
                     </span>
                   </div>
@@ -286,7 +286,7 @@ export default function InventoryPage() {
                   {/* Restock button */}
                   <div className="w-24 flex justify-end">
                     <button onClick={() => setRestocking(item)}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition-all hover:-translate-y-px hover:border-emerald-300 hover:text-emerald-700 hover:shadow-md">
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 shadow-sm transition-all hover:-translate-y-px hover:border-emerald-300 hover:text-emerald-700 hover:shadow-md whitespace-nowrap">
                       <Plus className="h-3 w-3" /> {t.inventory.restock}
                     </button>
                   </div>

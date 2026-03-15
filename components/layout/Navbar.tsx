@@ -5,6 +5,7 @@ import { Menu } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { NotificationBell } from "@/components/notifications/NotificationBell"
 import { getInitials } from "@/lib/utils"
+import Image from "next/image"
 
 interface NavbarProps {
   onMenuClick?: () => void
@@ -15,7 +16,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
   return (
     <header className="h-16 border-b bg-white flex items-center justify-between px-4 md:px-6 shrink-0">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 min-w-0">
         {/* Hamburger — mobile only */}
         <button
           onClick={onMenuClick}
@@ -26,7 +27,19 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         </button>
       </div>
 
-      <div className="flex items-center gap-3">
+      {/* Centered Logo */}
+      <div className="flex-1 flex justify-center">
+        <Image
+          src="/logo.svg"
+          alt="MediStock Logo"
+          width={180}
+          height={55}
+          className="object-contain"
+          priority
+        />
+      </div>
+
+      <div className="flex items-center gap-3 min-w-0">
         <NotificationBell />
 
         <div className="flex items-center gap-2">
@@ -45,4 +58,3 @@ export function Navbar({ onMenuClick }: NavbarProps) {
     </header>
   )
 }
-

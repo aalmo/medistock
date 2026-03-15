@@ -8,7 +8,7 @@ export const medicationSchema = z.object({
   strength: z.string().optional().nullable(),
   unit: z.string().default('tablet'),
   rxcui: z.string().optional().nullable(),
-  imageUrl: z.string().url().optional().nullable().or(z.literal('')),
+  imageUrl: z.string().optional().nullable().or(z.literal('')),
   ingredients: z.string().optional().nullable(),
   warnings: z.string().optional().nullable(),
   tags: z.array(z.string()).optional().nullable(),

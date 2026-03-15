@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   LayoutDashboard, Users, Pill, Calendar, Bell,
-  Settings, Package, LogOut, Activity, Boxes, Languages, X
+  Settings, Package, LogOut, Boxes, Languages, X
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { useT } from "@/lib/i18n/context"
 import { LOCALE_LIST } from "@/lib/i18n/locales"
 import type { Locale } from "@/lib/i18n/types"
+import Image from "next/image"
 
 interface SidebarProps {
   open?: boolean
@@ -38,10 +39,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       {/* Logo + close btn (mobile) */}
       <div className="flex items-center justify-between mb-8 px-2">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
-            <Activity className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-xl font-bold">MediStock</span>
+          {/* Logo removed, now in Navbar */}
         </div>
         {onClose && (
           <button onClick={onClose} className="lg:hidden p-1 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-white transition-colors">

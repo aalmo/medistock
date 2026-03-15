@@ -49,6 +49,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           image: user.image,
           role: user.role,
+          language: user.language, // add language to JWT
         };
       },
     }),
@@ -57,18 +58,16 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        // @ts-expect-error - role is added to user in authorize but not in NextAuth types
         token.role = user.role;
+        token.language = user.language; // propagate language
       }
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
-        // @ts-expect-error - id is added to session.user via JWT token
         session.user.id = token.id as string;
-        // @ts-expect-error - role is added to session.user via JWT token
         session.user.role = token.role as string;
-
+        session.user.language = token.language as string; // propagate language
         // Validate the user still exists in DB (guards against stale tokens after DB reset)
         const exists = await prisma.user.findUnique({
           where: { id: token.id as string },
@@ -83,4 +82,3 @@ export const authOptions: NextAuthOptions = {
     },
   },
 };
-

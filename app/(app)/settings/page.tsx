@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useT } from "@/lib/i18n/context"
+import { LOCALE_LIST } from "@/lib/i18n/locales"
 
 const TIMEZONES = [
   "UTC","Europe/Berlin","Europe/London","Europe/Paris","Europe/Rome",
@@ -19,6 +20,7 @@ interface UserSettings {
   name:            string
   email:           string
   timezone:        string
+  language:        string // NEW: default language
   emailNotifs:     boolean
   emailAlertLevel: string
   lowStockDays:    number
@@ -74,9 +76,9 @@ const SELECT = "w-full appearance-none rounded-xl border border-slate-200 bg-whi
 export default function SettingsPage() {
   const { data: session } = useSession()
   const { toast } = useToast()
-  const { t } = useT()
+  const { t, setLocale } = useT()
   const [settings, setSettings] = useState<UserSettings>({
-    name: "", email: "", timezone: "UTC",
+    name: "", email: "", timezone: "UTC", language: "en",
     emailNotifs: true, emailAlertLevel: "low", lowStockDays: 7, expiryAlertDays: 30,
     drugDatabase: "us",
   })
@@ -117,8 +119,10 @@ export default function SettingsPage() {
     }
   }
 
-  const update = (k: keyof UserSettings, v: UserSettings[keyof UserSettings]) =>
+  const update = (k: keyof UserSettings, v: UserSettings[keyof UserSettings]) => {
     setSettings(s => ({ ...s, [k]: v }))
+    if (k === "language") setLocale(v as string)
+  }
 
   return (
     <div className="relative w-full space-y-6 pb-6">
@@ -156,6 +160,13 @@ export default function SettingsPage() {
           </Field>
           <Field label={t.settings.emailAddress} hint={t.settings.emailHint}>
             <input className={`${INPUT} cursor-not-allowed bg-slate-50 text-slate-400`} value={settings.email} disabled />
+          </Field>
+          <Field label="Default Language">
+            <select className={SELECT} value={settings.language} onChange={e => update("language", e.target.value)}>
+              {LOCALE_LIST.map(([code, meta]) => (
+                <option key={code} value={code}>{meta.flag} {meta.label}</option>
+              ))}
+            </select>
           </Field>
         </Section>
 

@@ -205,11 +205,20 @@ export default function PatientDetailPage() {
                       {/* ── Top row: icon + name + actions ── */}
                       <div className="flex items-start justify-between gap-4">
 
-                        {/* Left: icon + name block */}
+                        {/* Left: icon/image + name block */}
                         <div className="flex min-w-0 items-start gap-3">
-                          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${theme.iconBg} shadow-sm`}>
-                            <Icon className={`h-5 w-5 ${theme.iconColor}`} />
-                          </div>
+                          {pm.medication.imageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={pm.medication.imageUrl}
+                              alt={pm.medication.brandName ?? pm.medication.name}
+                              className="h-11 w-11 shrink-0 rounded-xl object-cover shadow-sm border border-slate-100"
+                            />
+                          ) : (
+                            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${theme.iconBg} shadow-sm`}>
+                              <Icon className={`h-5 w-5 ${theme.iconColor}`} />
+                            </div>
+                          )}
 
                           <div className="min-w-0">
                             {/* Brand / Primary name */}

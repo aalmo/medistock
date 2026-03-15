@@ -16,6 +16,8 @@ const nextConfig = {
       { protocol: 'https', hostname: '*.supabase.co' },
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
     ],
+    // allow local /uploads and external http images
+    unoptimized: true,
   },
 }
 

@@ -74,6 +74,29 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   return NextResponse.json({ data: updated })
 }
 
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { id } = await params
+  const body = await req.json()
+
+  // Partial update – only update the fields that are provided
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data: Record<string, any> = {}
+  if (body.imageUrl   !== undefined) data.imageUrl   = body.imageUrl   || null
+  if (body.name       !== undefined) data.name       = body.name
+  if (body.brandName  !== undefined) data.brandName  = body.brandName  || null
+  if (body.strength   !== undefined) data.strength   = body.strength   || null
+  if (body.tags       !== undefined) data.tags       = JSON.stringify(Array.isArray(body.tags) ? body.tags : [])
+
+  if (Object.keys(data).length === 0) {
+    return NextResponse.json({ error: "No fields to update" }, { status: 400 })
+  }
+
+  const updated = await prisma.medication.update({ where: { id }, data })
+  return NextResponse.json({ data: updated })
+}
+
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

@@ -7,6 +7,7 @@ import { z } from "zod"
 const settingsSchema = z.object({
   name:             z.string().min(1).max(100).optional(),
   timezone:         z.string().optional(),
+  language:         z.string().optional(), // NEW: default language
   emailNotifs:      z.boolean().optional(),
   emailAlertLevel:  z.enum(["off", "low", "critical"]).optional(),
   lowStockDays:     z.number().int().min(1).max(90).optional(),
@@ -15,7 +16,7 @@ const settingsSchema = z.object({
 })
 
 const USER_SELECT = {
-  name: true, email: true, timezone: true,
+  name: true, email: true, timezone: true, language: true,
   emailNotifs: true, emailAlertLevel: true,
   lowStockDays: true, expiryAlertDays: true,
   drugDatabase: true,

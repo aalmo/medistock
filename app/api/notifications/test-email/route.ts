@@ -12,7 +12,7 @@ export async function POST() {
 
   const user = await prisma.user.findUnique({
     where:  { id: (session.user as { id: string }).id },
-    select: { email: true, name: true },
+    select: { email: true, name: true, language: true },
   })
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 })
 
@@ -55,6 +55,7 @@ export async function POST() {
         status:       "low",
       },
     ],
+    language: user.language || "en",
   })
 
   if (!ok) return NextResponse.json({ error: "SMTP send failed — check server console for details", smtpDiag }, { status: 500 })

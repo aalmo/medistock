@@ -5,6 +5,10 @@
  */
 
 import nodemailer from "nodemailer"
+import { en } from "@/lib/i18n/locales/en"
+import { ar } from "@/lib/i18n/locales/ar"
+import { de } from "@/lib/i18n/locales/de"
+import type { Translation } from "@/lib/i18n/types"
 
 /** Always creates a fresh transporter so env changes take effect without restart. */
 function createTransporter() {
@@ -26,6 +30,12 @@ function createTransporter() {
     auth: { user, pass },
     tls: { rejectUnauthorized: false },   // allow self-signed certs
   })
+}
+
+function getTranslation(lang: string): Translation {
+  if (lang === "ar") return ar
+  if (lang === "de") return de
+  return en
 }
 
 /**
@@ -97,6 +107,7 @@ export interface LowStockEmailData {
     threshold:    number
     status:       "low" | "critical"
   }>
+  language?: string // NEW: pass language
 }
 
 const STATUS_COLORS = {
@@ -104,7 +115,7 @@ const STATUS_COLORS = {
   low:      { bg: "#fffbeb", border: "#fde68a", badge: "#f59e0b", badgeText: "#fff", label: "LOW",      icon: "🟡" },
 }
 
-export function buildLowStockEmail(data: LowStockEmailData): { subject: string; html: string; text: string } {
+export function buildLowStockEmail(data: LowStockEmailData, t: Translation): { subject: string; html: string; text: string } {
   const criticalCount = data.medications.filter(m => m.status === "critical").length
   const lowCount      = data.medications.filter(m => m.status === "low").length
   const appUrl        = process.env.NEXTAUTH_URL ?? "http://localhost:3000"
@@ -203,7 +214,8 @@ export function buildLowStockEmail(data: LowStockEmailData): { subject: string; 
 }
 
 export async function sendLowStockEmail(data: LowStockEmailData): Promise<boolean> {
-  const { subject, html, text } = buildLowStockEmail(data)
+  const t = getTranslation(data.language || "en")
+  const { subject, html, text } = buildLowStockEmail(data, t)
   return sendMail({ to: data.toEmail, subject, html, text })
 }
 
@@ -225,6 +237,7 @@ export interface ExpiryEmailData {
     daysLeft:       number
     status:         "expired" | "critical" | "warning"
   }>
+  language?: string // NEW: pass language
 }
 
 const EXPIRY_COLORS = {
@@ -233,7 +246,7 @@ const EXPIRY_COLORS = {
   warning:  { bg: "#fffbeb", border: "#fde68a", badge: "#f59e0b", label: "WARNING",  icon: "🟡" },
 }
 
-export function buildExpiryEmail(data: ExpiryEmailData): { subject: string; html: string; text: string } {
+export function buildExpiryEmail(data: ExpiryEmailData, t: Translation): { subject: string; html: string; text: string } {
   const expiredCount  = data.packages.filter(p => p.status === "expired").length
   const criticalCount = data.packages.filter(p => p.status === "critical").length
   const appUrl        = process.env.NEXTAUTH_URL ?? "http://localhost:3000"
@@ -320,6 +333,7 @@ export function buildExpiryEmail(data: ExpiryEmailData): { subject: string; html
 }
 
 export async function sendExpiryEmail(data: ExpiryEmailData): Promise<boolean> {
-  const { subject, html, text } = buildExpiryEmail(data)
+  const t = getTranslation(data.language || "en")
+  const { subject, html, text } = buildExpiryEmail(data, t)
   return sendMail({ to: data.toEmail, subject, html, text })
 }

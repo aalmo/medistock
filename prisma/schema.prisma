@@ -17,6 +17,7 @@ model User {
   passwordHash  String?
   role          String    @default("CAREGIVER")
   timezone      String    @default("UTC")
+  language      String    @default("en") // NEW: default language
   emailNotifs      Boolean   @default(true)
   emailAlertLevel  String    @default("low")
   lowStockDays     Int       @default(7)

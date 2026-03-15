@@ -34,7 +34,7 @@ export async function runAutoComplete() {
   const results = { autoCompleted: 0, lowStockAlerts: 0, emailsSent: 0 }
 
   const emailBatch = new Map<string, {
-    user:        { id: string; email: string; name: string | null; emailNotifs: boolean; emailAlertLevel: string }
+    user:        { id: string; email: string; name: string | null; emailNotifs: boolean; emailAlertLevel: string; language?: string }
     patientName: string
     patientId:   string
     items:       Array<{ name: string; brandName?: string; strength?: string; unitType: string; pillsInStock: number; daysLeft: number; threshold: number; status: "low" | "critical" }>
@@ -105,7 +105,7 @@ export async function runAutoComplete() {
         const batchKey = `${user.id}::${pm.patientId}`
         if (!emailBatch.has(batchKey)) {
           emailBatch.set(batchKey, {
-            user:        { id: user.id, email: user.email, name: user.name, emailNotifs: user.emailNotifs, emailAlertLevel: alertLevel },
+            user:        { id: user.id, email: user.email, name: user.name, emailNotifs: user.emailNotifs, emailAlertLevel: alertLevel, language: user.language },
             patientName: pm.patient.name,
             patientId:   pm.patientId,
             items:       [],
@@ -143,6 +143,7 @@ export async function runAutoComplete() {
       toName:      batch.user.name ?? "Caregiver",
       patientName: batch.patientName,
       medications: batch.items,
+      language:    batch.user.language || "en",
     })
 
     if (sent) {
@@ -162,4 +163,3 @@ export async function runAutoComplete() {
 
   return results
 }
-
