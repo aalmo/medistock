@@ -13,7 +13,10 @@ interface InventoryItem {
   patientName:         string
   medicationName:      string
   medicationStrength:  string | null
+  unitType:            string
   pillsInStock:        number
+  packageCount:        number
+  nextExpiryDate:      string | null
   avgDailyPills:       number
   daysRemaining:       number
   stockStatus:         "ok" | "low" | "critical"
@@ -32,24 +35,32 @@ function RestockModal({ item, onClose, onSaved }: {
 }) {
   const { toast } = useToast()
   const { t } = useT()
-  const [qty, setQty]       = useState(30)
-  const [saving, setSaving] = useState(false)
+  const [qty,        setQty]        = useState(30)
+  const [expiryDate, setExpiryDate] = useState("")
+  const [lotNumber,  setLotNumber]  = useState("")
+  const [saving,     setSaving]     = useState(false)
+
+  const canConfirm = qty > 0 && expiryDate !== ""
 
   const confirm = async () => {
+    if (!canConfirm) return
     setSaving(true)
     const res = await fetch(`/api/inventory/${item.patientMedicationId}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ quantity: qty, reason: "Manual restock" }),
+      body: JSON.stringify({ quantity: qty, expiryDate, lotNumber: lotNumber || undefined, reason: "Manual restock" }),
     })
     if (res.ok) {
       toast({ title: `Added ${qty} units to ${item.medicationName}` })
       onSaved()
+    } else {
+      const err = await res.json().catch(() => ({}))
+      toast({ title: err.error ?? "Failed to restock", variant: "destructive" })
     }
     setSaving(false)
   }
 
-  const newTotal  = item.pillsInStock + qty
-  const newDays   = item.avgDailyPills > 0 ? Math.floor(newTotal / item.avgDailyPills) : 999
+  const newTotal = item.pillsInStock + qty
+  const newDays  = item.avgDailyPills > 0 ? Math.floor(newTotal / item.avgDailyPills) : 999
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/35 p-4 backdrop-blur-sm">
@@ -92,6 +103,21 @@ function RestockModal({ item, onClose, onSaved }: {
               className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Expiry Date *</label>
+              <input type="date" value={expiryDate}
+                onChange={e => setExpiryDate(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Lot # (optional)</label>
+              <input type="text" value={lotNumber} placeholder="e.g. LOT2025A"
+                onChange={e => setLotNumber(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+            </div>
+          </div>
+
           <p className="text-xs text-slate-500">
             {t.inventory.supplyAfter}: <span className="font-semibold text-slate-700">{newDays >= 999 ? "\u221e" : newDays} {t.common.days}</span> {t.inventory.perDay.replace("/", "")} {item.avgDailyPills}{t.inventory.perDay}
           </p>
@@ -102,7 +128,7 @@ function RestockModal({ item, onClose, onSaved }: {
           <button onClick={onClose} className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100">
             {t.common.cancel}
           </button>
-          <button onClick={confirm} disabled={saving}
+          <button onClick={confirm} disabled={saving || !canConfirm}
             className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-px disabled:opacity-60">
             {saving
               ? <><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />{t.common.saving}</>

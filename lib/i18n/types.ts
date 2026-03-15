@@ -90,16 +90,31 @@ export interface Translation {
 
   // ── Patients ─────────────────────────────────────────────────────────
   patients: {
-    title:         string
-    subtitle:      string
-    addPatient:    string
-    searchPlaceholder: string
-    noPatients:    string
-    noPatientsHint:string
-    age:           string
-    dob:           string
-    medications:   string
-    medication:    string
+    title:              string
+    subtitle:           string
+    addPatient:         string
+    searchPlaceholder:  string
+    noPatients:         string
+    noPatientsHint:     string
+    age:                string
+    dob:                string
+    medications:        string
+    medication:         string
+    addMedication:      string
+    editPatient:        string
+    inStock:            string
+    critical:           string
+    lowStock:           string
+    daysLeft:           string
+    perDay:             string
+    stockLevel:         string
+    noMedications:      string
+    noMedicationsHint:  string
+    todaysDoses:        string
+    history:            string
+    noDosesToday:       string
+    packages:           string
+    nextExpiry:         string
   }
 
   // ── Inventory ─────────────────────────────────────────────────────────
@@ -178,14 +193,23 @@ export interface Translation {
 
   // ── Schedules ─────────────────────────────────────────────────────────
   schedules: {
-    title:       string
-    subtitle:    string
-    weeklyView:  string
-    noDoses:     string
-    noDosesHint: string
-    markTaken:   string
-    markMissed:  string
-    dose:        string
+    title:              string
+    subtitle:           string
+    weeklyView:         string
+    noDoses:            string
+    noDosesHint:        string
+    markTaken:          string
+    markMissed:         string
+    dose:               string
+    currentWeek:        string
+    today:              string
+    allActiveSchedules: string
+    active:             string
+    inactive:           string
+    taken:              string
+    missed:             string
+    pending:            string
+    more:               string
   }
 
   // ── Medications ───────────────────────────────────────────────────────

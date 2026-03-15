@@ -85,7 +85,7 @@ export default function SchedulesPage() {
             <h2 className="text-sm font-semibold text-slate-900">
               {format(weekStart, "MMM d")} – {format(addDays(weekStart, 6), "MMM d, yyyy")}
             </h2>
-            {weekOffset === 0 && <p className="text-xs text-slate-500">Current week</p>}
+            {weekOffset === 0 && <p className="text-xs text-slate-500">{t.schedules.currentWeek}</p>}
           </div>
           <div className="flex items-center gap-1">
             <button onClick={() => setWeekOffset(o => o - 1)}
@@ -94,7 +94,7 @@ export default function SchedulesPage() {
             </button>
             <button onClick={() => setWeekOffset(0)}
               className="h-8 rounded-lg border border-slate-200 px-2.5 text-xs font-medium transition-colors hover:bg-slate-50">
-              Today
+              {t.schedules.today}
             </button>
             <button onClick={() => setWeekOffset(o => o + 1)}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 transition-colors hover:bg-slate-50">
@@ -153,7 +153,7 @@ export default function SchedulesPage() {
                       )
                     })}
                     {dayEvents.length > 4 && (
-                      <p className="text-center text-[9px] text-slate-500">+{dayEvents.length - 4} more</p>
+                      <p className="text-center text-[9px] text-slate-500">+{dayEvents.length - 4} {t.schedules.more}</p>
                     )}
                   </div>
                 )
@@ -165,14 +165,14 @@ export default function SchedulesPage() {
 
       {/* ── Schedule list ── */}
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">All Active Schedules</h2>
+        <h2 className="mb-3 text-sm font-semibold text-slate-900">{t.schedules.allActiveSchedules}</h2>
         {schedules.length === 0 ? (
           <div className="dashboard-surface py-16 text-center text-slate-500">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
               <Calendar className="h-7 w-7 opacity-30" />
             </div>
-            <p className="font-medium">No schedules yet</p>
-            <p className="mt-1 text-sm">Add medications to patients to create schedules</p>
+            <p className="font-medium">{t.schedules.noDoses}</p>
+            <p className="mt-1 text-sm">{t.schedules.noDosesHint}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -212,16 +212,16 @@ export default function SchedulesPage() {
                         <span key={i} className={`rounded-md px-1.5 py-0.5 font-mono text-[10px] ${theme.bg} ${theme.text}`}>{tt}</span>
                       ))}
                       <span className={`rounded-md px-2 py-0.5 text-[10px] font-medium ${sch.active ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
-                        {sch.active ? "Active" : "Inactive"}
+                        {sch.active ? t.schedules.active : t.schedules.inactive}
                       </span>
                     </div>
                   </div>
 
                   {total > 0 && (
                     <div className="flex items-center gap-4 sm:gap-3 text-center">
-                      <div><p className="text-sm font-semibold text-emerald-600">{taken}</p><p className="text-[9px] text-slate-500">taken</p></div>
-                      <div><p className="text-sm font-semibold text-red-500">{missed}</p><p className="text-[9px] text-slate-500">missed</p></div>
-                      <div><p className="text-sm font-semibold text-blue-500">{pending}</p><p className="text-[9px] text-slate-500">pending</p></div>
+                      <div><p className="text-sm font-semibold text-emerald-600">{taken}</p><p className="text-[9px] text-slate-500">{t.schedules.taken}</p></div>
+                      <div><p className="text-sm font-semibold text-red-500">{missed}</p><p className="text-[9px] text-slate-500">{t.schedules.missed}</p></div>
+                      <div><p className="text-sm font-semibold text-blue-500">{pending}</p><p className="text-[9px] text-slate-500">{t.schedules.pending}</p></div>
                     </div>
                   )}
                 </div>

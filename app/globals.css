@@ -1,5 +1,4 @@
-/* @import MUST be first — before any @tailwind directives */
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
+/* Cairo is loaded via next/font/google in layout.tsx — no @import needed */
 
 @tailwind base;
 @tailwind components;
@@ -69,7 +68,7 @@
   /* ── Arabic / RTL font override ── */
   .font-arabic,
   .font-arabic * {
-    font-family: 'AlJazeera', 'Cairo', sans-serif !important;
+    font-family: var(--font-cairo), 'Cairo', sans-serif !important;
     letter-spacing: 0 !important;
     line-height: 1.75 !important;
   }

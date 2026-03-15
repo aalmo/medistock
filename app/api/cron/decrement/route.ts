@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { calcAvgDailyPills, calcDaysRemaining, parseJsonArray } from "@/lib/calculations"
-import { subMinutes } from "date-fns"
+import { syncPillsInStock } from "@/lib/inventory-sync"
+import { subMinutes, startOfDay } from "date-fns"
 
 // POST /api/cron/decrement
 // Called every 15 min by Vercel Cron
@@ -11,92 +12,128 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const now = new Date()
+  const now         = new Date()
   const windowStart = subMinutes(now, 15)
+  const todayStart  = startOfDay(now)
 
   // Find PENDING dose logs that are past due
   const dueLogs = await prisma.doseLog.findMany({
     where: {
       scheduledAt: { gte: windowStart, lte: now },
-      status: "PENDING",
-      schedule: { active: true }
+      status:      "PENDING",
+      schedule:    { active: true },
     },
     include: {
       schedule: {
         include: {
           patientMedication: {
             include: {
-              patient: { include: { user: true } },
-              medication: true
-            }
-          }
-        }
-      }
-    }
+              patient:    { include: { user: true } },
+              medication: true,
+              // FIFO: fetch non-expired packages ordered oldest-expiry first
+              packages: {
+                where:   { expiryDate: { gte: todayStart } },
+                orderBy: { expiryDate: "asc" },
+              },
+            },
+          },
+        },
+      },
+    },
   })
 
   const results = { processed: 0, lowStockAlerts: 0 }
 
   for (const log of dueLogs) {
-    const pm = log.schedule.patientMedication
+    const pm           = log.schedule.patientMedication
     const pillsPerDose = log.schedule.pillsPerDose
 
-    // Auto-decrement inventory
-    const newStock = Math.max(0, pm.pillsInStock - pillsPerDose)
-    await prisma.patientMedication.update({
-      where: { id: pm.id },
-      data: { pillsInStock: newStock }
-    })
+    let newStock: number
+
+    if (pm.packages.length === 0) {
+      // ── Fallback: no packages — direct decrement (legacy / migrated) ──
+      newStock = Math.max(0, pm.pillsInStock - pillsPerDose)
+      await prisma.patientMedication.update({
+        where: { id: pm.id },
+        data:  { pillsInStock: newStock },
+      })
+    } else {
+      // ── FIFO package deduction ──
+      let remaining = pillsPerDose
+
+      for (const pkg of pm.packages) {
+        if (remaining <= 0) break
+
+        const deduct = Math.min(pkg.quantity, remaining)
+        const newQty = pkg.quantity - deduct
+
+        if (newQty <= 0) {
+          // Package exhausted — delete it
+          await prisma.medicationPackage.delete({ where: { id: pkg.id } })
+        } else {
+          await prisma.medicationPackage.update({
+            where: { id: pkg.id },
+            data:  { quantity: newQty },
+          })
+        }
+
+        remaining -= deduct
+      }
+
+      // Sync pillsInStock from remaining packages
+      newStock = await syncPillsInStock(pm.id)
+    }
 
     await prisma.doseLog.update({
       where: { id: log.id },
       data: {
-        status: "TAKEN",
-        takenAt: now,
-        pillsDecremented: pillsPerDose
-      }
+        status:           "TAKEN",
+        takenAt:          now,
+        pillsDecremented: pillsPerDose,
+      },
     })
 
     await prisma.inventoryEvent.create({
       data: {
         patientMedicationId: pm.id,
-        type: "DECREMENT",
-        quantity: -pillsPerDose,
-        reason: "Auto-decrement (scheduled)"
-      }
+        type:                "DECREMENT",
+        quantity:            -pillsPerDose,
+        reason:              "Auto-decrement (scheduled)",
+      },
     })
 
     results.processed++
 
-    // Check if now low on stock
+    // ── Low-stock check ──
     const avgDaily = calcAvgDailyPills({
-      timesOfDay: parseJsonArray(log.schedule.timesOfDay, ['08:00']),
-      daysOfWeek: parseJsonArray(log.schedule.daysOfWeek, [1,2,3,4,5,6,7]),
+      timesOfDay:   parseJsonArray(log.schedule.timesOfDay, ["08:00"]),
+      daysOfWeek:   parseJsonArray(log.schedule.daysOfWeek, [1, 2, 3, 4, 5, 6, 7]),
       pillsPerDose: log.schedule.pillsPerDose,
-      startDate: log.schedule.startDate
+      startDate:    log.schedule.startDate,
     })
     const daysLeft = calcDaysRemaining(newStock, avgDaily)
 
     if (daysLeft <= pm.lowStockThreshold) {
-      // Check if we already sent a low-stock notif today
+      const dayStart = new Date(now)
+      dayStart.setHours(0, 0, 0, 0)
       const existing = await prisma.notification.findFirst({
         where: {
-          userId: pm.patient.userId,
+          userId:    pm.patient.userId,
           patientId: pm.patientId,
-          type: "LOW_STOCK",
-          createdAt: { gte: new Date(now.setHours(0, 0, 0, 0)) }
-        }
+          type:      "LOW_STOCK",
+          createdAt: { gte: dayStart },
+        },
       })
 
       if (!existing) {
         await prisma.notification.create({
           data: {
-            userId: pm.patient.userId,
+            userId:    pm.patient.userId,
             patientId: pm.patientId,
-            type: "LOW_STOCK",
-            message: `${pm.patient.name}'s ${pm.medication.name} is running low — ${newStock} pills left (~${daysLeft} days).`,
-            channel: "IN_APP"
-          }
+            type:      "LOW_STOCK",
+            message:   `${pm.patient.name}'s ${pm.medication.name} is running low — ${newStock} units left (~${daysLeft} days).`,
+            channel:   "IN_APP",
+          },
         })
         results.lowStockAlerts++
       }
@@ -105,4 +142,3 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ ok: true, ...results })
 }
-

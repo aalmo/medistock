@@ -211,6 +211,37 @@ async function main() {
   });
 
   console.log('✅ Created schedules');
+
+  // ── Demo packages ──────────────────────────────────────────────────────
+  const today = new Date()
+  const addDays = (d: Date, n: number) => new Date(d.getTime() + n * 86_400_000)
+
+  const demoPackages = [
+    { patientMedicationId: pm1.id, quantity: 5,  expiryDate: addDays(today, 5),   unitType: "tablet", lotNumber: "LOT-A001", notes: "Nearly expired — demo FIFO package" },
+    { patientMedicationId: pm1.id, quantity: 40, expiryDate: addDays(today, 180), unitType: "tablet", lotNumber: "LOT-A002", notes: null },
+    { patientMedicationId: pm2.id, quantity: 8,  expiryDate: addDays(today, 60),  unitType: "tablet", lotNumber: "LOT-L001", notes: null },
+    { patientMedicationId: pm3.id, quantity: 60, expiryDate: addDays(today, 90),  unitType: "tablet", lotNumber: "LOT-M001", notes: null },
+    { patientMedicationId: pm4.id, quantity: 5,  expiryDate: addDays(today, 14),  unitType: "tablet", lotNumber: "LOT-A003", notes: null },
+  ]
+
+  for (const pkg of demoPackages) {
+    await prisma.medicationPackage.create({ data: pkg })
+  }
+
+  // Sync pillsInStock for all seeded PMs to match their packages
+  for (const pmId of [pm1.id, pm2.id, pm3.id, pm4.id]) {
+    const pkgs = await prisma.medicationPackage.findMany({
+      where:  { patientMedicationId: pmId, expiryDate: { gte: today } },
+      select: { quantity: true },
+    })
+    const total = pkgs.reduce((sum, p) => sum + p.quantity, 0)
+    await prisma.patientMedication.update({
+      where: { id: pmId },
+      data:  { pillsInStock: total },
+    })
+  }
+
+  console.log('✅ Created demo packages');
   console.log('🎉 Seeding complete!');
   console.log('\nDemo credentials:');
   console.log('  Email: demo@medistock.app');

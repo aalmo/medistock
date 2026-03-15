@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { syncPillsInStock } from "@/lib/inventory-sync"
 import { z } from "zod"
 
 const packageSchema = z.object({
@@ -58,6 +59,10 @@ export async function POST(req: NextRequest) {
     data: { ...parsed.data, expiryDate: new Date(parsed.data.expiryDate) },
     include: { patientMedication: { include: { medication: true, patient: true } } },
   })
+
+  // Sync pillsInStock on the parent PatientMedication
+  await syncPillsInStock(parsed.data.patientMedicationId)
+
   return NextResponse.json({ data: pkg }, { status: 201 })
 }
 

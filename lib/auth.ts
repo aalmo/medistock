@@ -5,8 +5,8 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 
 export const authOptions: NextAuthOptions = {
-  // @ts-ignore - adapter type mismatch between next-auth and @auth/prisma-adapter
-  adapter: PrismaAdapter(prisma),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  adapter: PrismaAdapter(prisma) as any,
   session: {
     strategy: 'jwt',
   },
@@ -57,16 +57,16 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        // @ts-ignore
+        // @ts-expect-error - role is added to user in authorize but not in NextAuth types
         token.role = user.role;
       }
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
-        // @ts-ignore
+        // @ts-expect-error - id is added to session.user via JWT token
         session.user.id = token.id as string;
-        // @ts-ignore
+        // @ts-expect-error - role is added to session.user via JWT token
         session.user.role = token.role as string;
 
         // Validate the user still exists in DB (guards against stale tokens after DB reset)

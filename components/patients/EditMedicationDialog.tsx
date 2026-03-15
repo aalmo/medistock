@@ -9,8 +9,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2, Calculator, X, Plus } from "lucide-react"
+import { Loader2, Calculator, X, Plus, Trash2 } from "lucide-react"
+import { format } from "date-fns"
 import { parseJsonArray, unitLabel, containerLabel, computeTotalUnitsFromContainers, computeContainersRemaining } from "@/lib/calculations"
+
+// ...existing code...
 
 const PRESET_TAGS = [
   "Blood Pressure", "Cardiac", "Diabetes", "Pain Relief", "Antibiotic",
@@ -98,6 +101,63 @@ export function EditMedicationDialog({ pm, open, onClose }: EditMedicationDialog
   // Container mode: when unitType is inhalation/ml/drop, show container calculator
   const isContainerType = ["inhalation", "ml", "drop", "injection"].includes(unitType)
 
+  // ── Package management ──────────────────────────────────────────────────
+  interface MedPackage {
+    id: string
+    quantity: number
+    expiryDate: string
+    lotNumber: string | null
+    unitType: string
+  }
+  const [packages,       setPackages]       = useState<MedPackage[]>([])
+  const [newPkgQty,      setNewPkgQty]      = useState(30)
+  const [newPkgExpiry,   setNewPkgExpiry]   = useState("")
+  const [newPkgLot,      setNewPkgLot]      = useState("")
+  const [addingPkg,      setAddingPkg]      = useState(false)
+  const [deletingPkgId,  setDeletingPkgId]  = useState<string | null>(null)
+
+  const fetchPackages = async (pmId: string) => {
+    const res = await fetch(`/api/packages?patientMedicationId=${pmId}`)
+    if (res.ok) {
+      const d = await res.json()
+      setPackages(d.data ?? [])
+    }
+  }
+
+  const addPackage = async () => {
+    if (!pm || !newPkgExpiry) return
+    setAddingPkg(true)
+    try {
+      const res = await fetch("/api/packages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientMedicationId: pm.id,
+          quantity:   newPkgQty,
+          expiryDate: newPkgExpiry,
+          unitType:   pm.unitType,
+          lotNumber:  newPkgLot || undefined,
+        }),
+      })
+      if (res.ok) {
+        toast({ title: "Package added" })
+        setNewPkgQty(30); setNewPkgExpiry(""); setNewPkgLot("")
+        await fetchPackages(pm.id)
+      } else {
+        toast({ title: "Failed to add package", variant: "destructive" })
+      }
+    } finally { setAddingPkg(false) }
+  }
+
+  const deletePackage = async (pkgId: string) => {
+    if (!pm) return
+    setDeletingPkgId(pkgId)
+    try {
+      await fetch(`/api/packages/${pkgId}`, { method: "DELETE" })
+      await fetchPackages(pm.id)
+    } finally { setDeletingPkgId(null) }
+  }
+
   useEffect(() => {
     if (!pm) return
     // Drug info
@@ -127,6 +187,9 @@ export function EditMedicationDialog({ pm, open, onClose }: EditMedicationDialog
       setDaysOfWeek(parseJsonArray<number>(sch.daysOfWeek, [1, 2, 3, 4, 5, 6, 7]))
       setPillsPerDose(sch.pillsPerDose)
     }
+
+    // Load packages for this medication
+    fetchPackages(pm.id)
   }, [pm])
 
   // When containers or dosesPerContainer change, sync pillsInStock
@@ -458,6 +521,72 @@ export function EditMedicationDialog({ pm, open, onClose }: EditMedicationDialog
                 rows={2}
                 className="mt-1"
               />
+            </div>
+
+            {/* ── Packages sub-section ── */}
+            <div className="rounded-xl border border-violet-100 bg-violet-50/40 p-4 space-y-3">
+              <p className="text-sm font-semibold text-violet-800">📦 Packages</p>
+
+              {/* Existing packages list */}
+              {packages.length === 0 ? (
+                <p className="text-xs text-slate-500 italic">No packages recorded yet.</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {[...packages]
+                    .sort((a, b) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime())
+                    .map(pkg => (
+                      <div key={pkg.id} className="flex items-center justify-between gap-2 rounded-lg border border-violet-100 bg-white px-3 py-2 text-xs">
+                        <div className="min-w-0 flex-1">
+                          <span className="font-semibold text-slate-900">{pkg.quantity} {unitLabel(pkg.unitType)}</span>
+                          <span className="mx-1.5 text-slate-400">·</span>
+                          <span className="text-slate-600">Exp {format(new Date(pkg.expiryDate), "dd MMM yyyy")}</span>
+                          {pkg.lotNumber && <span className="ml-1.5 font-mono text-slate-400">Lot {pkg.lotNumber}</span>}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => deletePackage(pkg.id)}
+                          disabled={deletingPkgId === pkg.id}
+                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-40"
+                        >
+                          {deletingPkgId === pkg.id
+                            ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-red-200 border-t-red-500" />
+                            : <Trash2 className="h-3.5 w-3.5" />}
+                        </button>
+                      </div>
+                    ))}
+                </div>
+              )}
+
+              {/* Add new package row */}
+              <div className="space-y-2 border-t border-violet-100 pt-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-violet-600">Add Package</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px]">Qty ({unitLabel(unitType)})</Label>
+                    <Input type="number" min={1} step={0.5} value={newPkgQty}
+                      onChange={e => setNewPkgQty(Number(e.target.value))} className="mt-0.5 h-8 text-xs" />
+                  </div>
+                  <div>
+                    <Label className="text-[10px]">Expiry Date *</Label>
+                    <Input type="date" value={newPkgExpiry}
+                      onChange={e => setNewPkgExpiry(e.target.value)} className="mt-0.5 h-8 text-xs" />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-[10px]">Lot # (optional)</Label>
+                  <Input type="text" placeholder="e.g. LOT2025A" value={newPkgLot}
+                    onChange={e => setNewPkgLot(e.target.value)} className="mt-0.5 h-8 text-xs" />
+                </div>
+                <Button type="button" size="sm" variant="outline"
+                  className="w-full border-violet-200 text-violet-700 hover:bg-violet-50"
+                  onClick={addPackage}
+                  disabled={addingPkg || !newPkgExpiry}
+                >
+                  {addingPkg
+                    ? <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />Adding…</>
+                    : <><Plus className="mr-1.5 h-3.5 w-3.5" />Add Package</>}
+                </Button>
+              </div>
             </div>
           </TabsContent>
 

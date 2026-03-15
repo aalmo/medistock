@@ -34,6 +34,13 @@ const en: Translation = {
     searchPlaceholder: "Search patients…", noPatients: "No patients found",
     noPatientsHint: "Add your first patient to get started", age: "Age", dob: "DOB",
     medications: "medications", medication: "medication",
+    addMedication: "Add Medication", editPatient: "Edit",
+    inStock: "In Stock", critical: "Critical", lowStock: "Low Stock",
+    daysLeft: "days left", perDay: "/day", stockLevel: "Stock level",
+    noMedications: "No medications added yet",
+    noMedicationsHint: "Click \"Add Medication\" to get started",
+    todaysDoses: "Today's Doses", history: "History", noDosesToday: "No doses scheduled for today",
+    packages: "packages", nextExpiry: "next exp",
   },
   inventory: {
     title: "Inventory", needAttention: "medications need attention", allStocked: "All medications fully stocked",
@@ -69,6 +76,9 @@ const en: Translation = {
     title: "Schedules", subtitle: "Weekly dose calendar for all patients", weeklyView: "Weekly View",
     noDoses: "No doses scheduled", noDosesHint: "Add a medication schedule to a patient to get started",
     markTaken: "Mark taken", markMissed: "Mark missed", dose: "Dose",
+    currentWeek: "Current week", today: "Today", allActiveSchedules: "All Active Schedules",
+    active: "Active", inactive: "Inactive",
+    taken: "taken", missed: "missed", pending: "pending", more: "more",
   },
   medications: {
     title: "Medications", subtitle: "Global medication library", addMed: "Add Medication",

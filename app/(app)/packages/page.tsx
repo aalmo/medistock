@@ -331,7 +331,7 @@ export default function PackagesPage() {
             </span>
             <div className="flex-1">
               <p className="text-sm font-semibold text-slate-900">
-                {pat.name}'s {med.brandName ?? med.name}{med.strength ? ` (${med.strength})` : ""}
+                {pat.name}&apos;s {med.brandName ?? med.name}{med.strength ? ` (${med.strength})` : ""}
                 {nextExpiry.lotNumber ? <span className="font-normal text-slate-500"> · Lot {nextExpiry.lotNumber}</span> : ""}
               </p>
               <p className="mt-0.5 text-xs font-medium" style={{ color: s.color }}>
@@ -430,8 +430,8 @@ export default function PackagesPage() {
                                 {pkg.lotNumber && <span className="font-mono text-[10px] text-slate-500">Lot: {pkg.lotNumber}</span>}
                               </div>
                               <p className="mt-1 text-xs text-slate-600">
-                                <span className="font-semibold">{pkg.quantity} {pkg.unitType}{pkg.quantity !== 1 ? "s" : ""}</span>
-                                <span className="text-slate-500"> - Expires {expFmt}</span>
+                                <span className="font-semibold">{pkg.quantity} Doses/Package</span>
+                                <span className="text-slate-500"> · Expires {expFmt}</span>
                               </p>
                               {pkg.notes && <p className="mt-0.5 text-[11px] italic text-slate-500">{pkg.notes}</p>}
                             </div>

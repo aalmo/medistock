@@ -2,36 +2,50 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { syncPillsInStock } from "@/lib/inventory-sync"
 
-// PATCH /api/inventory/[id] - restock (add pills)
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+// PATCH /api/inventory/[id] - restock by adding a new package
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
+  const { id } = await params
   const body = await req.json()
-  const { quantity, reason } = body
+  const { quantity, expiryDate, lotNumber, reason } = body
 
   if (!quantity || quantity <= 0) {
     return NextResponse.json({ error: "Quantity must be positive" }, { status: 400 })
   }
+  if (!expiryDate) {
+    return NextResponse.json({ error: "Expiry date is required" }, { status: 400 })
+  }
 
-  const pm = await prisma.patientMedication.findUnique({ where: { id: params.id } })
+  const pm = await prisma.patientMedication.findUnique({ where: { id } })
   if (!pm) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
-  const updated = await prisma.patientMedication.update({
-    where: { id: params.id },
-    data: { pillsInStock: { increment: quantity } }
+  // Create the new package
+  await prisma.medicationPackage.create({
+    data: {
+      patientMedicationId: id,
+      quantity,
+      expiryDate: new Date(expiryDate),
+      unitType:   pm.unitType,
+      lotNumber:  lotNumber ?? null,
+    },
   })
 
+  // Sync pillsInStock from all non-expired packages
+  const newTotal = await syncPillsInStock(id)
+
+  // Log inventory event
   await prisma.inventoryEvent.create({
     data: {
-      patientMedicationId: params.id,
-      type: "RESTOCK",
+      patientMedicationId: id,
+      type:    "RESTOCK",
       quantity,
-      reason: reason ?? "Restock"
-    }
+      reason:  reason ?? "Restock",
+    },
   })
 
-  return NextResponse.json({ data: updated })
+  return NextResponse.json({ data: { pillsInStock: newTotal } })
 }
-

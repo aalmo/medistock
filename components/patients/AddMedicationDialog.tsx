@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { Loader2, Calculator } from "lucide-react"
 import { format } from "date-fns"
-import { unitLabel, containerLabel, computeTotalUnitsFromContainers } from "@/lib/calculations"
+import { unitLabel, containerLabel } from "@/lib/calculations"
 
 interface AddMedicationDialogProps {
   patientId: string
@@ -58,10 +58,14 @@ export function AddMedicationDialog({ patientId, open, onClose }: AddMedicationD
   const [pillsPerDose, setPillsPerDose] = useState(1)
 
   const [unitType, setUnitType] = useState("pill")
-  const [pillsInStock, setPillsInStock] = useState(30)
   const [dosesPerContainer, setDosesPerContainer] = useState(100)
-  const [containersInStock, setContainersInStock] = useState(1)
   const [lowStockThreshold, setLowStockThreshold] = useState(7)
+
+  // Single package row for Step 3
+  const [pkgQuantity,   setPkgQuantity]   = useState(30)
+  const [pkgCount,      setPkgCount]      = useState(1)
+  const [pkgExpiryDate, setPkgExpiryDate] = useState("")
+  const [pkgLotNumber,  setPkgLotNumber]  = useState("")
 
   const isContainerType = ["inhalation", "ml", "drop", "injection"].includes(unitType)
 
@@ -102,13 +106,14 @@ export function AddMedicationDialog({ patientId, open, onClose }: AddMedicationD
 
   const handleFinish = async () => {
     if (!medId) return
+    if (!pkgExpiryDate) {
+      toast({ title: "Please set a package expiry date", variant: "destructive" })
+      return
+    }
     setSaving(true)
     try {
-      const totalUnits = isContainerType
-        ? computeTotalUnitsFromContainers(containersInStock, dosesPerContainer)
-        : pillsInStock
-
-      // 1. Create PatientMedication
+      // 1. Create PatientMedication — pillsInStock = packages × quantity per package
+      const totalUnits = pkgCount * pkgQuantity
       const pmRes = await fetch("/api/medications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -116,17 +121,32 @@ export function AddMedicationDialog({ patientId, open, onClose }: AddMedicationD
           patientId,
           medicationId: medId,
           unitType,
-          pillsInStock: totalUnits,
-          dosesPerContainer,
-          containersInStock,
+          pillsInStock:      totalUnits,
+          dosesPerContainer: isContainerType ? dosesPerContainer : 1,
+          containersInStock: isContainerType ? Math.floor(totalUnits / dosesPerContainer) : 0,
           lowStockThreshold,
-        })
+        }),
       })
       if (!pmRes.ok) throw new Error("Failed to assign medication")
       const pmData = await pmRes.json()
       const pmId = pmData.data.id
 
-      // 2. Create Schedule
+      // 2. Create one MedicationPackage per package count (all same expiry/lot)
+      for (let i = 0; i < pkgCount; i++) {
+        await fetch("/api/packages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            patientMedicationId: pmId,
+            quantity:   pkgQuantity,
+            expiryDate: pkgExpiryDate,
+            unitType,
+            lotNumber:  pkgLotNumber || undefined,
+          }),
+        })
+      }
+
+      // 3. Create Schedule
       await fetch("/api/schedules", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -136,14 +156,17 @@ export function AddMedicationDialog({ patientId, open, onClose }: AddMedicationD
           timesOfDay,
           daysOfWeek,
           pillsPerDose,
-          startDate: format(new Date(), "yyyy-MM-dd")
-        })
+          startDate: format(new Date(), "yyyy-MM-dd"),
+        }),
       })
 
       toast({ title: "Medication added successfully!" })
       setStep(1)
       setSelectedMed(null)
       setMedId(null)
+      setPkgCount(1)
+      setPkgExpiryDate("")
+      setPkgLotNumber("")
       onClose()
     } catch {
       toast({ title: "Error adding medication", variant: "destructive" })
@@ -286,36 +309,85 @@ export function AddMedicationDialog({ patientId, open, onClose }: AddMedicationD
               </Select>
             </div>
 
-            {isContainerType ? (
+            {/* Container info for inhalation/liquid types */}
+            {isContainerType && (
               <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 space-y-3">
                 <div className="flex items-center gap-2 text-sm font-semibold text-blue-700">
                   <Calculator className="w-4 h-4" />
-                  Container Calculator
+                  {containerLabel(unitType)} info
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-xs">{unitLabel(unitType)} per {containerLabel(unitType)}</Label>
-                    <Input type="number" min={1} value={dosesPerContainer}
-                      onChange={e => setDosesPerContainer(Number(e.target.value))} className="mt-1" placeholder="e.g. 100" />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Number of {containerLabel(unitType)}s</Label>
-                    <Input type="number" min={0} step={0.5} value={containersInStock}
-                      onChange={e => setContainersInStock(Number(e.target.value))} className="mt-1" placeholder="e.g. 10" />
-                  </div>
+                <div>
+                  <Label className="text-xs">{unitLabel(unitType)} per {containerLabel(unitType)}</Label>
+                  <Input type="number" min={1} value={dosesPerContainer}
+                    onChange={e => setDosesPerContainer(Number(e.target.value))} className="mt-1" placeholder="e.g. 100" />
                 </div>
-                <div className="bg-white rounded-md p-3 text-sm border border-blue-100 flex justify-between">
-                  <span className="text-muted-foreground">Total {unitLabel(unitType)}:</span>
-                  <span className="font-semibold">{computeTotalUnitsFromContainers(containersInStock, dosesPerContainer).toLocaleString()}</span>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <Label>Current {unitLabel(unitType)} in stock</Label>
-                <Input type="number" min={0} step={0.5} value={pillsInStock}
-                  onChange={e => setPillsInStock(Number(e.target.value))} className="mt-1" />
               </div>
             )}
+
+            {/* Package row */}
+            <div className="rounded-xl border border-violet-100 bg-violet-50/60 p-4 space-y-3">
+              <p className="text-sm font-semibold text-violet-800">📦 Package Details</p>
+
+              {/* Number of packages + doses per package */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Number of packages</Label>
+                  <Input
+                    type="number" min={1} step={1}
+                    value={pkgCount}
+                    onChange={e => setPkgCount(Math.max(1, Math.floor(Number(e.target.value))))}
+                    className="mt-1"
+                    placeholder="e.g. 3"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">{unitLabel(unitType)} per package</Label>
+                  <Input
+                    type="number" min={1} step={0.5}
+                    value={pkgQuantity}
+                    onChange={e => setPkgQuantity(Number(e.target.value))}
+                    className="mt-1"
+                    placeholder="e.g. 30"
+                  />
+                </div>
+              </div>
+
+              {/* Total preview */}
+              {pkgCount > 1 && (
+                <div className="flex items-center justify-between rounded-lg bg-violet-100/70 px-3 py-2 text-xs font-medium text-violet-800">
+                  <span>{pkgCount} packages × {pkgQuantity} {unitLabel(unitType)}</span>
+                  <span className="font-bold">{pkgCount * pkgQuantity} {unitLabel(unitType)} total</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Expiry Date *</Label>
+                  <Input
+                    type="date"
+                    value={pkgExpiryDate}
+                    onChange={e => setPkgExpiryDate(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Lot Number (optional)</Label>
+                  <Input
+                    type="text"
+                    value={pkgLotNumber}
+                    onChange={e => setPkgLotNumber(e.target.value)}
+                    placeholder="e.g. LOT2025A"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <p className="text-[11px] text-violet-600">
+                {pkgCount > 1
+                  ? `${pkgCount} separate package records will be created, each with ${pkgQuantity} ${unitLabel(unitType)}.`
+                  : "More packages can be added later from the patient page."}
+              </p>
+            </div>
 
             <div>
               <Label>Low stock alert (days)</Label>
@@ -330,7 +402,7 @@ export function AddMedicationDialog({ patientId, open, onClose }: AddMedicationD
           {step > 1 && <Button variant="outline" onClick={() => setStep(s => s - 1)}>Back</Button>}
           {step < 3 && step > 1 && <Button onClick={() => setStep(s => s + 1)}>Next</Button>}
           {step === 3 && (
-            <Button onClick={handleFinish} disabled={saving}>
+            <Button onClick={handleFinish} disabled={saving || !pkgExpiryDate}>
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Save Medication
             </Button>

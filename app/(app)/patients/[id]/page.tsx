@@ -9,10 +9,11 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getInitials, calculateAge, formatDate, formatDateTime } from "@/lib/utils"
-import { calcAvgDailyPills, calcDaysRemaining, getStockStatus, getFrequencyLabel, parseJsonArray, unitLabel, computeContainersRemaining } from "@/lib/calculations"
+import { calcAvgDailyPills, calcDaysRemaining, calcEffectiveStock, getStockStatus, getFrequencyLabel, parseJsonArray, unitLabel, containerLabel, computeContainersRemaining } from "@/lib/calculations"
 import { AddMedicationDialog } from "@/components/patients/AddMedicationDialog"
 import { EditMedicationDialog } from "@/components/patients/EditMedicationDialog"
 import { useToast } from "@/hooks/use-toast"
+import { useT } from "@/lib/i18n/context"
 
 // ── Color palette per unit type ──────────────────────────────────────────────
 const UNIT_THEME: Record<string, {
@@ -33,14 +34,15 @@ const UNIT_THEME: Record<string, {
 }
 
 const STATUS_CONFIG = {
-  critical: { bar: "bg-red-500",    ring: "ring-red-300",    glow: "shadow-red-100",   label: "Critical",  labelClass: "bg-red-100 text-red-700 border-red-200" },
-  low:      { bar: "bg-amber-400",  ring: "ring-amber-300",  glow: "shadow-amber-100", label: "Low Stock", labelClass: "bg-amber-100 text-amber-700 border-amber-200" },
-  ok:       { bar: "bg-emerald-500",ring: "ring-emerald-200",glow: "shadow-green-50",  label: "In Stock",  labelClass: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+  critical: { bar: "bg-red-500",    ring: "ring-red-300",    glow: "shadow-red-100",   labelClass: "bg-red-100 text-red-700 border-red-200" },
+  low:      { bar: "bg-amber-400",  ring: "ring-amber-300",  glow: "shadow-amber-100", labelClass: "bg-amber-100 text-amber-700 border-amber-200" },
+  ok:       { bar: "bg-emerald-500",ring: "ring-emerald-200",glow: "shadow-green-50",  labelClass: "bg-emerald-100 text-emerald-700 border-emerald-200" },
 }
 
 export default function PatientDetailPage() {
   const params = useParams()
   const { toast } = useToast()
+  const { t } = useT()
   const [patient, setPatient] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [addMedOpen, setAddMedOpen] = useState(false)
@@ -131,9 +133,9 @@ export default function PatientDetailPage() {
 
       <Tabs defaultValue="medications">
         <TabsList className="dashboard-surface grid h-auto w-full grid-cols-1 gap-1 p-1 sm:grid-cols-3">
-          <TabsTrigger value="medications">Medications ({patient.patientMedications.length})</TabsTrigger>
-          <TabsTrigger value="today">Today's Doses</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+          <TabsTrigger value="medications">{t.patients.medications} ({patient.patientMedications.length})</TabsTrigger>
+          <TabsTrigger value="today">{t.patients.todaysDoses}</TabsTrigger>
+          <TabsTrigger value="history">{t.patients.history}</TabsTrigger>
         </TabsList>
 
         {/* ── Medications Tab ── */}
@@ -143,8 +145,8 @@ export default function PatientDetailPage() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center">
                 <Pill className="w-8 h-8 opacity-30" />
               </div>
-              <p className="font-medium">No medications added yet</p>
-              <p className="text-sm mt-1">Click "Add Medication" to get started</p>
+              <p className="font-medium">{t.patients.noMedications}</p>
+              <p className="text-sm mt-1">{t.patients.noMedicationsHint}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -157,15 +159,18 @@ export default function PatientDetailPage() {
                     startDate: new Date(sch.startDate)
                   }), 0)
 
-                const daysLeft   = calcDaysRemaining(pm.pillsInStock, avgDaily)
-                const status     = getStockStatus(pm.pillsInStock, avgDaily, pm.lowStockThreshold)
+                // Effective stock: expiry-capped sum of packages, fallback to raw pillsInStock
+                const pkgs         = pm.packages ?? []
+                const effectiveStock = calcEffectiveStock(pkgs, avgDaily) ?? pm.pillsInStock
+                const daysLeft   = calcDaysRemaining(effectiveStock, avgDaily)
+                const status     = getStockStatus(effectiveStock, avgDaily, pm.lowStockThreshold)
                 const stockPct   = Math.min(100, avgDaily > 0 ? (daysLeft / (pm.lowStockThreshold * 2)) * 100 : 100)
                 const unit       = pm.unitType ?? 'pill'
                 const theme      = UNIT_THEME[unit] ?? UNIT_THEME.other
                 const statusCfg  = STATUS_CONFIG[status]
                 const Icon       = theme.icon
                 const containersLeft = ["inhalation","ml","drop","injection"].includes(unit) && pm.dosesPerContainer > 0
-                  ? computeContainersRemaining(pm.pillsInStock, pm.dosesPerContainer)
+                  ? computeContainersRemaining(effectiveStock, pm.dosesPerContainer)
                   : null
 
                 const schedule   = pm.schedules[0]
@@ -233,7 +238,7 @@ export default function PatientDetailPage() {
                         {/* Right: status badge + actions */}
                         <div className="flex shrink-0 items-center gap-1">
                           <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${statusCfg.labelClass}`}>
-                            {statusCfg.label}
+                            {status === "critical" ? t.patients.critical : status === "low" ? t.patients.lowStock : t.patients.inStock}
                           </span>
                           <Button
                             size="sm" variant="ghost"
@@ -257,13 +262,13 @@ export default function PatientDetailPage() {
                         {/* Stock */}
                         <div className="rounded-xl bg-slate-50 px-3 py-3 text-center">
                           <p className="text-xl font-semibold leading-none text-slate-900">
-                            {pm.pillsInStock % 1 === 0 ? pm.pillsInStock : pm.pillsInStock.toFixed(1)}
+                            {effectiveStock % 1 === 0 ? effectiveStock : effectiveStock.toFixed(1)}
                           </p>
                           <p className="mt-1 text-[10px] leading-tight text-slate-500">
                             {unitLabel(unit)}
                             {containersLeft !== null && (
                               <span className={`block font-medium ${theme.iconColor}`}>
-                                ~{containersLeft.toFixed(1)} containers
+                                ~{containersLeft.toFixed(1)} {containerLabel(unit)}
                               </span>
                             )}
                           </p>
@@ -278,20 +283,20 @@ export default function PatientDetailPage() {
                           }`}>
                             {isFinite(daysLeft) ? daysLeft : "∞"}
                           </p>
-                          <p className="mt-1 text-[10px] text-slate-500">days left</p>
+                          <p className="mt-1 text-[10px] text-slate-500">{t.patients.daysLeft}</p>
                         </div>
 
                         {/* Per day */}
                         <div className="rounded-xl bg-slate-50 px-3 py-3 text-center">
                           <p className="text-xl font-semibold leading-none text-slate-900">{avgDaily.toFixed(1)}</p>
-                          <p className="mt-1 text-[10px] text-slate-500">{unitLabel(unit)}/day</p>
+                          <p className="mt-1 text-[10px] text-slate-500">{unitLabel(unit)}{t.patients.perDay}</p>
                         </div>
                       </div>
 
                       {/* ── Progress bar ── */}
                       <div className="mt-4">
                         <div className="mb-1 flex justify-between text-[10px] text-slate-500">
-                          <span>Stock level</span>
+                          <span>{t.patients.stockLevel}</span>
                           <span>{Math.round(stockPct)}%</span>
                         </div>
                         <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
@@ -301,6 +306,20 @@ export default function PatientDetailPage() {
                           />
                         </div>
                       </div>
+
+                      {/* ── Package chip ── */}
+                      {pkgs.length > 0 && (() => {
+                        const nonExpired = pkgs.filter((p: any) => new Date(p.expiryDate) >= new Date())
+                        const next = nonExpired.sort((a: any, b: any) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime())[0]
+                        return (
+                          <div className="mt-2 flex items-center gap-1.5">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 border border-violet-100 px-2 py-0.5 text-[10px] font-medium text-violet-700">
+                              📦 {pkgs.length} {t.patients.packages}
+                              {next && <span className="text-violet-500">· {t.patients.nextExpiry} {new Date(next.expiryDate).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" })}</span>}
+                            </span>
+                          </div>
+                        )
+                      })()}
 
                       {/* ── Schedule strip ── */}
                       {schedule && times.length > 0 && (
@@ -371,16 +390,16 @@ export default function PatientDetailPage() {
                       <div className="flex items-center gap-2 shrink-0">
                         {log.status === "TAKEN" ? (
                           <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                            <CheckCircle className="w-3 h-3" /> Taken
+                            <CheckCircle className="w-3 h-3" /> {t.common.taken}
                           </span>
                         ) : log.status === "MISSED" ? (
                           <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-red-100 text-red-700">
-                            <AlertTriangle className="w-3 h-3" /> Missed
+                            <AlertTriangle className="w-3 h-3" /> {t.common.missed}
                           </span>
                         ) : (
                           <div className="flex gap-1.5">
-                            <Button size="sm" className="h-7 text-xs rounded-lg" onClick={() => handleMarkDose(log.id, "TAKEN")}>✓ Taken</Button>
-                            <Button size="sm" variant="outline" className="h-7 text-xs rounded-lg" onClick={() => handleMarkDose(log.id, "SKIPPED")}>Skip</Button>
+                            <Button size="sm" className="h-7 text-xs rounded-lg" onClick={() => handleMarkDose(log.id, "TAKEN")}>✓ {t.common.taken}</Button>
+                            <Button size="sm" variant="outline" className="h-7 text-xs rounded-lg" onClick={() => handleMarkDose(log.id, "SKIPPED")}>{t.common.cancel}</Button>
                           </div>
                         )}
                       </div>
@@ -392,7 +411,7 @@ export default function PatientDetailPage() {
           {patient.patientMedications.flatMap((pm: any) => pm.schedules.flatMap((s: any) => s.doseLogs.filter((l: any) => new Date(l.scheduledAt).toDateString() === new Date().toDateString()))).length === 0 && (
             <div className="dashboard-surface py-12 text-center text-slate-500">
               <CheckCircle className="mx-auto mb-3 h-10 w-10 opacity-20" />
-              <p className="font-medium">No doses scheduled for today</p>
+              <p className="font-medium">{t.patients.noDosesToday}</p>
             </div>
           )}
         </TabsContent>
@@ -411,7 +430,9 @@ export default function PatientDetailPage() {
                     log.status === "TAKEN"   ? "bg-emerald-100 text-emerald-700 border-emerald-200" :
                     log.status === "MISSED"  ? "bg-red-100 text-red-700 border-red-200" :
                                               "bg-gray-100 text-gray-600 border-gray-200"
-                  }`}>{log.status}</span>
+                  }`}>
+                    {log.status === "TAKEN" ? t.common.taken : log.status === "MISSED" ? t.common.missed : t.common.pending}
+                  </span>
                 </div>
               ))
             )

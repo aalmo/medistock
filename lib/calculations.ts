@@ -159,3 +159,70 @@ export function containerLabel(unitType: string): string {
   }
   return map[unitType] ?? 'container'
 }
+
+/**
+ * Calculate effective (usable) stock from a list of packages.
+ *
+ * Simulates FIFO consumption: packages are sorted earliest-expiry first.
+ * For each package, we calculate how many days of consumption remain before
+ * it expires (from the point at which we start consuming it), then cap its
+ * contribution to min(package.quantity, remainingDaysBeforeExpiry × avgDailyUnits).
+ *
+ * Example: 2 × 100-pill packages both expiring in 9 days, 1 pill/day
+ *   → package 1 starts on day 0, expires day 9 → can consume min(100, 9×1) = 9
+ *   → package 2 starts after package 1 is empty (day 9), but it also expires day 9
+ *   → 0 days left when we'd start package 2 → contributes 0
+ *   → total effective stock = 9
+ *
+ * When avgDailyUnits is 0 or not provided, just sums all non-expired quantities.
+ * Returns null when the packages array is empty (backward-compat fallback signal).
+ */
+export function calcEffectiveStock(
+  packages: Array<{ quantity: number; expiryDate: Date | string }>,
+  avgDailyUnits = 0
+): number | null {
+  if (!packages || packages.length === 0) return null
+
+  const todayStart = startOfDay(new Date())
+  const msPerDay   = 86_400_000
+
+  // Filter out already-expired packages
+  const live = packages
+    .map(pkg => ({
+      quantity:  pkg.quantity,
+      expiryDate: pkg.expiryDate instanceof Date ? pkg.expiryDate : new Date(pkg.expiryDate),
+    }))
+    .filter(pkg => pkg.expiryDate >= todayStart)
+
+  if (live.length === 0) return 0
+
+  if (avgDailyUnits <= 0) {
+    // No consumption rate — just sum raw quantities of non-expired packages
+    return live.reduce((sum, pkg) => sum + pkg.quantity, 0)
+  }
+
+  // Sort FIFO: earliest expiry first
+  live.sort((a, b) => a.expiryDate.getTime() - b.expiryDate.getTime())
+
+  let totalUsable    = 0
+  let daysCumulativeConsumed = 0  // how many days of consumption have been "allocated" so far
+
+  for (const pkg of live) {
+    // Days until this package expires from today
+    const daysUntilExpiry = Math.max(0, Math.floor((pkg.expiryDate.getTime() - todayStart.getTime()) / msPerDay))
+
+    // Days we can still consume from this package
+    // (we start consuming it after all earlier packages are exhausted)
+    const daysAvailable = Math.max(0, daysUntilExpiry - daysCumulativeConsumed)
+
+    // Usable units from this package
+    const usable = Math.min(pkg.quantity, daysAvailable * avgDailyUnits)
+    totalUsable += usable
+
+    // Advance the consumption cursor by how many days this package fills
+    daysCumulativeConsumed += usable / avgDailyUnits
+  }
+
+  return Math.floor(totalUsable)
+}
+

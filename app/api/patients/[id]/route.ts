@@ -4,13 +4,13 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { patientSchema } from "@/lib/validations/patient"
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-
   const userId = (session.user as { id: string }).id
+  const { id } = await params
   const patient = await prisma.patient.findFirst({
-    where: { id: params.id, userId },
+    where: { id, userId },
     include: {
       patientMedications: {
         include: {
@@ -26,6 +26,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
               }
             }
           },
+          packages: {
+            orderBy: { expiryDate: "asc" },
+          },
           inventoryEvents: { orderBy: { createdAt: "desc" }, take: 5 }
         }
       }
@@ -36,11 +39,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json({ data: patient })
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const userId = (session.user as { id: string }).id
+  const { id } = await params
   const body = await req.json()
   const parsed = patientSchema.safeParse(body)
 
@@ -48,15 +52,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: "Validation error", details: parsed.error.issues }, { status: 400 })
   }
 
-  const patient = await prisma.patient.findFirst({ where: { id: params.id, userId } })
+  const patient = await prisma.patient.findFirst({ where: { id, userId } })
   if (!patient) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
   const updated = await prisma.patient.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       ...parsed.data,
-      dob: parsed.data.dob ? new Date(parsed.data.dob) : null,
-      email: parsed.data.email || null,
+      dob:      parsed.data.dob      ? new Date(parsed.data.dob) : null,
+      email:    parsed.data.email    || null,
       avatarUrl: parsed.data.avatarUrl || null,
     }
   })
@@ -64,15 +68,16 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json({ data: updated })
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const userId = (session.user as { id: string }).id
-  const patient = await prisma.patient.findFirst({ where: { id: params.id, userId } })
+  const { id } = await params
+  const patient = await prisma.patient.findFirst({ where: { id, userId } })
   if (!patient) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
-  await prisma.patient.delete({ where: { id: params.id } })
+  await prisma.patient.delete({ where: { id } })
   return NextResponse.json({ message: "Deleted" })
 }
 
