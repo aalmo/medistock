@@ -121,7 +121,7 @@ export default function SettingsPage() {
 
   const update = (k: keyof UserSettings, v: UserSettings[keyof UserSettings]) => {
     setSettings(s => ({ ...s, [k]: v }))
-    if (k === "language") setLocale(v as string)
+    if (k === "language") setLocale(v as import("@/lib/i18n/types").Locale)
   }
 
   return (
