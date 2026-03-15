@@ -80,6 +80,8 @@ const de: Translation = {
     addAnother: "Weiteres Paket für dieses Medikament hinzufügen", nextExpiry: "Nächster Ablauf",
     filterAll: "Alle", medication: "Medikament", daysAgo: "Tage zuvor",
     disposeNow: "sofort entsorgen", expiresIn: "Läuft ab in",
+    package: "Packung", packages: "Packungen",
+    dosesPerPackage: "Dosen/Packung", expires: "Läuft ab",
   },
   schedules: {
     title: "Zeitpläne", subtitle: "Wöchentlicher Dosiskalender für alle Patienten",

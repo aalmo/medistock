@@ -71,6 +71,8 @@ const en: Translation = {
     addAnother: "Add another package for this medication", nextExpiry: "Next expiry",
     filterAll: "All", medication: "Medication", daysAgo: "days ago",
     disposeNow: "dispose immediately", expiresIn: "Expires in",
+    package: "package", packages: "packages",
+    dosesPerPackage: "Doses/Package", expires: "Expires",
   },
   schedules: {
     title: "Schedules", subtitle: "Weekly dose calendar for all patients", weeklyView: "Weekly View",

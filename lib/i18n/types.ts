@@ -189,6 +189,10 @@ export interface Translation {
     daysAgo:         string
     disposeNow:      string
     expiresIn:       string
+    package:         string
+    packages:        string
+    dosesPerPackage: string
+    expires:         string
   }
 
   // ── Schedules ─────────────────────────────────────────────────────────

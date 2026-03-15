@@ -5,9 +5,9 @@
  */
 
 import nodemailer from "nodemailer"
-import { en } from "@/lib/i18n/locales/en"
-import { ar } from "@/lib/i18n/locales/ar"
-import { de } from "@/lib/i18n/locales/de"
+import en from "@/lib/i18n/locales/en"
+import ar from "@/lib/i18n/locales/ar"
+import de from "@/lib/i18n/locales/de"
 import type { Translation } from "@/lib/i18n/types"
 
 /** Always creates a fresh transporter so env changes take effect without restart. */
