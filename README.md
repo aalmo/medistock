@@ -93,7 +93,9 @@ cd medistock
 npm install --legacy-peer-deps
 ```
 
-> `--legacy-peer-deps` is required because some Radix UI packages declare peer-dependency ranges that conflict with React 18's exact version pins. This flag is safe and well-understood.
+> **Note:** `--legacy-peer-deps` is required because some Radix UI packages declare peer-dependency ranges that conflict with React 18's exact version pins. This flag is safe and well-understood. You may see it remove a few packages compared to a plain `npm install` - this is normal and indicates it's correctly resolving peer dependency conflicts.
+
+> **Raspberry Pi users:** The installation works perfectly on ARM architecture (Raspberry Pi 3/4/5). You may see some vulnerability warnings from `npm audit` - these are dependencies of development tools and do not affect production runtime security. The app has been tested successfully on Ubuntu Server for ARM64.
 
 ---
 

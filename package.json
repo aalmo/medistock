@@ -7,14 +7,14 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "npx prisma generate && next build",
+    "build": "./node_modules/.bin/prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "prisma:generate": "npx prisma generate",
-    "prisma:migrate": "npx prisma migrate dev",
-    "prisma:studio": "npx prisma studio",
-    "db:push": "npx prisma db push",
-    "db:seed": "npx prisma db seed",
+    "prisma:generate": "./node_modules/.bin/prisma generate",
+    "prisma:migrate": "./node_modules/.bin/prisma migrate dev",
+    "prisma:studio": "./node_modules/.bin/prisma studio",
+    "db:push": "./node_modules/.bin/prisma db push",
+    "db:seed": "./node_modules/.bin/prisma db seed",
     "test": "jest"
   },
   "dependencies": {
