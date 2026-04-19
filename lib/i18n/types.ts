@@ -115,6 +115,33 @@ export interface Translation {
     noDosesToday:       string
     packages:           string
     nextExpiry:         string
+    male:               string
+    female:             string
+  }
+
+  // ── Edit Patient Page ─────────────────────────────────────────────────
+  editPatientPage: {
+    title:              string
+    cardTitle:          string
+    fullName:           string
+    fullNamePlaceholder: string
+    dob:                string
+    gender:             string
+    genderPlaceholder:  string
+    male:               string
+    female:             string
+    other:              string
+    phone:              string
+    email:              string
+    notes:              string
+    notesPlaceholder:   string
+    avatarUrl:          string
+    avatarUrlOptional:  string
+    saveChanges:        string
+    cancel:             string
+    updateSuccess:      string
+    updateError:        string
+    updateErrorFallback: string
   }
 
   // ── Inventory ─────────────────────────────────────────────────────────
@@ -139,6 +166,11 @@ export interface Translation {
     perDay:          string
     noData:          string
     noDataHint:      string
+    expiryDate:      string
+    lotNumber:       string
+    lotOptional:     string
+    restockAdded:    string
+    restockFailed:   string
   }
 
   // ── Notifications ─────────────────────────────────────────────────────
@@ -193,6 +225,15 @@ export interface Translation {
     packages:        string
     dosesPerPackage: string
     expires:         string
+    openedLabel:     string
+    lotLabel:        string
+    addAnotherBtn:   string
+    deleteConfirmPkg: string
+    quantityUnit:    string
+    editTitle:       string
+    deleteTitle:     string
+    saveFailed:      string
+    medAndExpiryRequired: string
   }
 
   // ── Schedules ─────────────────────────────────────────────────────────
@@ -226,6 +267,19 @@ export interface Translation {
     strength:   string
     category:   string
     searchMeds: string
+    all:              string
+    notAssigned:      string
+    patients:         string
+    addPhoto:         string
+    changePhoto:      string
+    activeIngredients: string
+    deleteFromCatalog: string
+    deleteConfirm:    string
+    deleted:          string
+    deleteFailed:     string
+    uploadFailed:     string
+    photoUpdated:     string
+    medsAppearHint:   string
   }
 
   // ── Settings ─────────────────────────────────────────────────────────
@@ -281,6 +335,171 @@ export interface Translation {
     usDatabaseDesc:       string
     euDatabase:           string
     euDatabaseDesc:       string
+  }
+
+  // ── Add Medication Dialog ─────────────────────────────────────────────
+  addMedDialog: {
+    step1Title:       string
+    step2Title:       string
+    step3Title:       string
+    searchHint:       string
+    searchPlaceholder: string
+    orManual:         string
+    medNamePlaceholder: string
+    use:              string
+    frequency:        string
+    onceDailyLabel:   string
+    twiceDailyLabel:  string
+    threeTimesLabel:  string
+    fourTimesLabel:   string
+    weeklyLabel:      string
+    asNeededLabel:    string
+    timesOfDay:       string
+    daysOfWeek:       string
+    mon: string; tue: string; wed: string; thu: string
+    fri: string; sat: string; sun: string
+    pillsPerDose:     string
+    pillsPerDoseHint: string
+    unitType:         string
+    packageDetails:   string
+    numPackages:      string
+    perPackage:       string
+    expiryDate:       string
+    lotNumber:        string
+    lotOptional:      string
+    multiPkgNote:     string
+    morePkgLater:     string
+    lowStockDays:     string
+    lowStockHint:     string
+    back:             string
+    next:             string
+    save:             string
+    noExpiryError:    string
+    savedSuccess:     string
+    saveError:        string
+  }
+
+  // ── Edit Medication Dialog ────────────────────────────────────────────
+  editMedDialog: {
+    title:            string
+    tabDrug:          string
+    tabInventory:     string
+    tabSchedule:      string
+    drugName:         string
+    drugNamePlaceholder: string
+    brandName:        string
+    brandNamePlaceholder: string
+    doseStrength:     string
+    doseStrengthPlaceholder: string
+    doseStrengthHint: string
+    categoryTags:     string
+    tagPlaceholder:   string
+    quickAdd:         string
+    unitType:         string
+    containerCalc:    string
+    perContainer:     string
+    numContainers:    string
+    totalUnits:       string
+    equivalentContainers: string
+    orEnterTotal:     string
+    inStock:          string
+    lowStockDays:     string
+    lowStockUnits:    string
+    notes:            string
+    notesPlaceholder: string
+    packages:         string
+    noPackages:       string
+    expLabel:         string
+    lotLabel:         string
+    addPackage:       string
+    addPackageTitle:  string
+    qty:              string
+    expiryDate:       string
+    lotOptional:      string
+    adding:           string
+    frequency:        string
+    onceDailyLabel:   string
+    twiceDailyLabel:  string
+    threeTimesLabel:  string
+    fourTimesLabel:   string
+    weeklyLabel:      string
+    asNeededLabel:    string
+    customLabel:      string
+    timesOfDay:       string
+    daysOfWeek:       string
+    mon: string; tue: string; wed: string; thu: string
+    fri: string; sat: string; sun: string
+    perDose:          string
+    perDoseHint:      string
+    halfDoseNote:     string
+    cancel:           string
+    saveChanges:      string
+    packageAdded:     string
+    packageAddFailed: string
+    updateError:      string
+    updateSuccess:    string
+  }
+
+  // ── Medication Category Tags ──────────────────────────────────────────
+  tagLabels: {
+    "Blood Pressure":       string
+    "Cardiac":              string
+    "Diabetes":             string
+    "Pain Relief":          string
+    "Antibiotic":           string
+    "Anti-inflammatory":    string
+    "Cholesterol":          string
+    "Thyroid":              string
+    "Asthma":               string
+    "Anticoagulant":        string
+    "Antidepressant":       string
+    "Anxiety":              string
+    "Epilepsy":             string
+    "Osteoporosis":         string
+    "Vitamin / Supplement": string
+    "Allergy":              string
+    "Gastric / Acid Reflux": string
+    "Sleep":                string
+    "Blood Thinner":        string
+    "Immunosuppressant":    string
+  }
+
+  // ── Units & Frequency ─────────────────────────────────────────────────
+  units: {
+    pill:        string
+    pills:       string
+    tablet:      string
+    tablets:     string
+    inhalation:  string
+    inhalations: string
+    ml:          string
+    drop:        string
+    drops:       string
+    patch:       string
+    patches:     string
+    injection:   string
+    injections:  string
+    unit:        string
+    unitsPlural: string
+    perDay:      string
+    perDose:     string
+    total:       string
+    inStock:     string
+    lowStockAlert: string
+    perPackage:  string
+    container:   string
+    inhaler:     string
+    bottle:      string
+    vial:        string
+    box:         string
+  }
+
+  frequency: {
+    onceDaily:        string
+    twiceDaily:       string
+    threeTimesDaily:  string
+    fourTimesDaily:   string
+    timesDaily:       string  // e.g. "5× daily"
   }
 }
 

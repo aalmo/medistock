@@ -9,11 +9,11 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getInitials, calculateAge, formatDate, formatDateTime } from "@/lib/utils"
-import { calcAvgDailyPills, calcDaysRemaining, calcEffectiveStock, getStockStatus, getFrequencyLabel, parseJsonArray, unitLabel, containerLabel, computeContainersRemaining } from "@/lib/calculations"
+import { calcAvgDailyPills, calcDaysRemaining, calcEffectiveStock, getStockStatus, parseJsonArray, containerLabel, computeContainersRemaining } from "@/lib/calculations"
 import { AddMedicationDialog } from "@/components/patients/AddMedicationDialog"
 import { EditMedicationDialog } from "@/components/patients/EditMedicationDialog"
 import { useToast } from "@/hooks/use-toast"
-import { useT } from "@/lib/i18n/context"
+import { useT, tUnitLabel, tFrequencyLabel } from "@/lib/i18n/context"
 
 // ── Color palette per unit type ──────────────────────────────────────────────
 const UNIT_THEME: Record<string, {
@@ -109,7 +109,7 @@ export default function PatientDetailPage() {
             <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{patient.name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               {age !== null && <span className="text-sm text-slate-500">Age {age}</span>}
-              {patient.gender && <Badge variant="outline" className="text-xs">{patient.gender}</Badge>}
+              {patient.gender && <Badge variant="outline" className="text-xs">{patient.gender.toLowerCase() === "male" ? t.patients.male : patient.gender.toLowerCase() === "female" ? t.patients.female : patient.gender}</Badge>}
               {patient.dob && <span className="text-sm text-slate-500">- DOB: {formatDate(patient.dob)}</span>}
             </div>
           </div>
@@ -187,7 +187,7 @@ export default function PatientDetailPage() {
                     : null
                 const strengthStr = pm.medication.strength ?? null
                 const doseDisplay = schedule
-                  ? `${schedule.pillsPerDose} ${unitLabel(unit, schedule.pillsPerDose)}${strengthStr ? ` (${schedule.pillsPerDose === 1 ? strengthStr : `${schedule.pillsPerDose}× ${strengthStr}`})` : ''}`
+                  ? `${schedule.pillsPerDose} ${tUnitLabel(t, unit, schedule.pillsPerDose)}${strengthStr ? ` (${schedule.pillsPerDose === 1 ? strengthStr : `${schedule.pillsPerDose}× ${strengthStr}`})` : ''}`
                   : null
 
                 return (
@@ -274,7 +274,7 @@ export default function PatientDetailPage() {
                             {effectiveStock % 1 === 0 ? effectiveStock : effectiveStock.toFixed(1)}
                           </p>
                           <p className="mt-1 text-[10px] leading-tight text-slate-500">
-                            {unitLabel(unit)}
+                            {tUnitLabel(t, unit)}
                             {containersLeft !== null && (
                               <span className={`block font-medium ${theme.iconColor}`}>
                                 ~{containersLeft.toFixed(1)} {containerLabel(unit)}
@@ -298,7 +298,7 @@ export default function PatientDetailPage() {
                         {/* Per day */}
                         <div className="rounded-xl bg-slate-50 px-3 py-3 text-center">
                           <p className="text-xl font-semibold leading-none text-slate-900">{avgDaily.toFixed(1)}</p>
-                          <p className="mt-1 text-[10px] text-slate-500">{unitLabel(unit)}{t.patients.perDay}</p>
+                          <p className="mt-1 text-[10px] text-slate-500">{tUnitLabel(t, unit)}{t.patients.perDay}</p>
                         </div>
                       </div>
 
@@ -334,7 +334,7 @@ export default function PatientDetailPage() {
                       {schedule && times.length > 0 && (
                         <div className="mt-4 flex flex-wrap items-center gap-2">
                           <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
-                            {getFrequencyLabel(times.length)}
+                            {tFrequencyLabel(t, times.length)}
                           </span>
                           {times.map((t: string, i: number) => (
                             <span key={i} className={`rounded-md px-2 py-0.5 font-mono text-[11px] ${theme.iconBg} ${theme.iconColor}`}>
@@ -359,7 +359,7 @@ export default function PatientDetailPage() {
                                 key={tag}
                                 className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-medium text-blue-600 border border-blue-100"
                               >
-                                {tag}
+                                {(t.tagLabels as Record<string, string>)[tag] ?? tag}
                               </span>
                             ))}
                           </div>
@@ -393,7 +393,7 @@ export default function PatientDetailPage() {
                           <p className="text-sm font-semibold text-slate-900">{pm.medication.name}
                             {pm.medication.strength && <span className="ml-1 font-normal text-slate-500">({pm.medication.strength})</span>}
                           </p>
-                          <p className="text-xs text-slate-500">{formatDateTime(log.scheduledAt)} - {sch.pillsPerDose} {unitLabel(unit, sch.pillsPerDose)}</p>
+                          <p className="text-xs text-slate-500">{formatDateTime(log.scheduledAt)} - {sch.pillsPerDose} {tUnitLabel(t, unit, sch.pillsPerDose)}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">

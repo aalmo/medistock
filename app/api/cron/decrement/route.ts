@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
             userId:    pm.patient.userId,
             patientId: pm.patientId,
             type:      "LOW_STOCK",
-            message:   `${pm.patient.name}'s ${pm.medication.name} is running low — ${newStock} units left (~${daysLeft} days).`,
+            message:   lowStockMessage(pm.patient.name, pm.medication.name, newStock, daysLeft, pm.patient.user?.language),
             channel:   "IN_APP",
           },
         })

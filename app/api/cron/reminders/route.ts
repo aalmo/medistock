@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { addMinutes } from "date-fns"
+import { reminderMessage } from "@/lib/notification-messages"
 
 // POST /api/cron/reminders
 // Called every 30 min by Vercel Cron
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
         userId: user.id,
         patientId: pm.patientId,
         type: "REMINDER",
-        message: `Reminder: ${pm.patient.name} should take ${pm.medication.name} (${log.schedule.pillsPerDose} pill${log.schedule.pillsPerDose > 1 ? "s" : ""}) soon.`,
+        message: reminderMessage(pm.patient.name, pm.medication.name, log.schedule.pillsPerDose, user.language),
         channel: "IN_APP",
         metadata: JSON.stringify({ doseLogId: log.id })
       }

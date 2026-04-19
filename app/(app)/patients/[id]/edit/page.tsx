@@ -14,11 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { patientSchema, type PatientFormData } from "@/lib/validations/patient"
 import { useToast } from "@/hooks/use-toast"
+import { useT } from "@/lib/i18n/context"
 
 export default function EditPatientPage() {
   const params = useParams()
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useT()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [currentGender, setCurrentGender] = useState<string | undefined>()
@@ -61,14 +63,14 @@ export default function EditPatientPage() {
     if (!res || !res.ok) {
       const err = res ? await res.json().catch(() => ({})) : {}
       toast({
-        title: "Error updating patient",
-        description: err.error ?? "Something went wrong. Please try again.",
+        title: t.editPatientPage.updateError,
+        description: err.error ?? t.editPatientPage.updateErrorFallback,
         variant: "destructive"
       })
       return
     }
 
-    toast({ title: "Patient updated successfully!" })
+    toast({ title: t.editPatientPage.updateSuccess })
     router.push(`/patients/${params.id}`)
   }
 
@@ -87,29 +89,29 @@ export default function EditPatientPage() {
         <Link href={`/patients/${params.id}`}>
           <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
         </Link>
-        <h1 className="text-2xl font-bold">Edit Patient</h1>
+        <h1 className="text-2xl font-bold">{t.editPatientPage.title}</h1>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Patient Information</CardTitle>
+          <CardTitle>{t.editPatientPage.cardTitle}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
             <div>
-              <Label htmlFor="name">Full Name *</Label>
-              <Input id="name" {...register("name")} placeholder="John Smith" />
+              <Label htmlFor="name">{t.editPatientPage.fullName}</Label>
+              <Input id="name" {...register("name")} placeholder={t.editPatientPage.fullNamePlaceholder} />
               {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="dob">Date of Birth</Label>
+                <Label htmlFor="dob">{t.editPatientPage.dob}</Label>
                 <Input id="dob" type="date" {...register("dob")} />
               </div>
               <div>
-                <Label>Gender</Label>
+                <Label>{t.editPatientPage.gender}</Label>
                 <Select
                   value={currentGender}
                   onValueChange={(v) => {
@@ -118,12 +120,12 @@ export default function EditPatientPage() {
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select gender" />
+                    <SelectValue placeholder={t.editPatientPage.genderPlaceholder} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="MALE">Male</SelectItem>
-                    <SelectItem value="FEMALE">Female</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
+                    <SelectItem value="MALE">{t.editPatientPage.male}</SelectItem>
+                    <SelectItem value="FEMALE">{t.editPatientPage.female}</SelectItem>
+                    <SelectItem value="OTHER">{t.editPatientPage.other}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -131,38 +133,41 @@ export default function EditPatientPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">{t.editPatientPage.phone}</Label>
                 <Input id="phone" {...register("phone")} placeholder="+1 (555) 000-0000" />
               </div>
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t.editPatientPage.email}</Label>
                 <Input id="email" type="email" {...register("email")} placeholder="patient@email.com" />
                 {errors.email && <p className="text-sm text-destructive mt-1">{errors.email.message}</p>}
               </div>
             </div>
 
             <div>
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes">{t.editPatientPage.notes}</Label>
               <Textarea
                 id="notes"
                 {...register("notes")}
-                placeholder="Medical history, allergies, special instructions..."
+                placeholder={t.editPatientPage.notesPlaceholder}
                 rows={3}
               />
             </div>
 
             <div>
-              <Label htmlFor="avatarUrl">Avatar URL <span className="text-muted-foreground text-xs">(optional)</span></Label>
+              <Label htmlFor="avatarUrl">
+                {t.editPatientPage.avatarUrl}{" "}
+                <span className="text-muted-foreground text-xs">({t.editPatientPage.avatarUrlOptional})</span>
+              </Label>
               <Input id="avatarUrl" {...register("avatarUrl")} placeholder="https://..." />
             </div>
 
             <div className="flex gap-3 pt-2">
               <Button type="submit" disabled={saving}>
                 {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Save Changes
+                {t.editPatientPage.saveChanges}
               </Button>
               <Link href={`/patients/${params.id}`}>
-                <Button type="button" variant="outline">Cancel</Button>
+                <Button type="button" variant="outline">{t.editPatientPage.cancel}</Button>
               </Link>
             </div>
 
@@ -172,5 +177,3 @@ export default function EditPatientPage() {
     </div>
   )
 }
-
-

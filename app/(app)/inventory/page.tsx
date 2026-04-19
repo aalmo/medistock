@@ -50,11 +50,11 @@ function RestockModal({ item, onClose, onSaved }: {
       body: JSON.stringify({ quantity: qty, expiryDate, lotNumber: lotNumber || undefined, reason: "Manual restock" }),
     })
     if (res.ok) {
-      toast({ title: `Added ${qty} units to ${item.medicationName}` })
+      toast({ title: t.inventory.restockAdded.replace("{qty}", String(qty)).replace("{name}", item.medicationName) })
       onSaved()
     } else {
       const err = await res.json().catch(() => ({}))
-      toast({ title: err.error ?? "Failed to restock", variant: "destructive" })
+      toast({ title: err.error ?? t.inventory.restockFailed, variant: "destructive" })
     }
     setSaving(false)
   }
@@ -105,13 +105,13 @@ function RestockModal({ item, onClose, onSaved }: {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Expiry Date *</label>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t.inventory.expiryDate} *</label>
               <input type="date" value={expiryDate}
                 onChange={e => setExpiryDate(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Lot # (optional)</label>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t.inventory.lotNumber} ({t.inventory.lotOptional})</label>
               <input type="text" value={lotNumber} placeholder="e.g. LOT2025A"
                 onChange={e => setLotNumber(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
@@ -145,7 +145,7 @@ export default function InventoryPage() {
   const [inventory,  setInventory]  = useState<InventoryItem[]>([])
   const [loading,    setLoading]    = useState(true)
   const [restocking, setRestocking] = useState<InventoryItem | null>(null)
-  const { t } = useT()
+  const { t, dir } = useT()
 
   const fetchInventory = () => {
     setLoading(true)
@@ -223,13 +223,13 @@ export default function InventoryPage() {
         </div>
       ) : (
         <div className="dashboard-surface overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" dir={dir}>
           {/* Table header */}
           <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] items-center gap-4 border-b border-slate-100 bg-slate-50/80 px-6 py-3">
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">{t.inventory.patientMed}</p>
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 text-right w-20">{t.inventory.inStock}</p>
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 text-right w-16">{t.inventory.avgDay}</p>
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 text-right w-16">{t.inventory.daysLeft}</p>
+            <p className={`text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 w-20 ${dir === "rtl" ? "text-left" : "text-right"}`}>{t.inventory.inStock}</p>
+            <p className={`text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 w-16 ${dir === "rtl" ? "text-left" : "text-right"}`}>{t.inventory.avgDay}</p>
+            <p className={`text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 w-16 ${dir === "rtl" ? "text-left" : "text-right"}`}>{t.inventory.daysLeft}</p>
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 text-center w-24">{t.common.status}</p>
             <p className="w-24" />
           </div>
@@ -268,13 +268,13 @@ export default function InventoryPage() {
                   </div>
 
                   {/* In Stock */}
-                  <p className="w-20 text-right text-sm font-bold text-slate-900">{item.pillsInStock}</p>
+                  <p className={`w-20 text-sm font-bold text-slate-900 ${dir === "rtl" ? "text-left" : "text-right"}`}>{item.pillsInStock}</p>
 
                   {/* Avg/Day */}
-                  <p className="w-16 text-right text-sm text-slate-500">{item.avgDailyPills}</p>
+                  <p className={`w-16 text-sm text-slate-500 ${dir === "rtl" ? "text-left" : "text-right"}`}>{item.avgDailyPills}</p>
 
                   {/* Days Left */}
-                  <p className={`w-16 text-right text-sm font-bold ${cfg.accent}`}>{daysLeft}</p>
+                  <p className={`w-16 text-sm font-bold ${cfg.accent} ${dir === "rtl" ? "text-left" : "text-right"}`}>{daysLeft}</p>
 
                   {/* Status badge */}
                   <div className="w-24 flex justify-center">

@@ -97,7 +97,9 @@ export default function PatientsPage() {
                           <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">{t.patients.age} {age}</span>
                         )}
                         {patient.gender && (
-                          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700">{patient.gender}</span>
+                          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
+                            {patient.gender.toLowerCase() === "male" ? t.patients.male : patient.gender.toLowerCase() === "female" ? t.patients.female : patient.gender}
+                          </span>
                         )}
                       </div>
                       {patient.dob && <p className="mt-1 text-[11px] text-slate-400">{t.patients.dob}: {formatDate(patient.dob)}</p>}

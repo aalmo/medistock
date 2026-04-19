@@ -63,3 +63,32 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 export function useT() {
   return useContext(I18nContext)
 }
+
+/** Translate a unit type using current locale translations */
+export function tUnitLabel(t: Translation, unitType: string, count?: number): string {
+  const map: Record<string, [keyof Translation["units"], keyof Translation["units"]]> = {
+    pill:       ["pill",       "pills"],
+    tablet:     ["tablet",     "tablets"],
+    inhalation: ["inhalation", "inhalations"],
+    ml:         ["ml",         "ml"],
+    drop:       ["drop",       "drops"],
+    patch:      ["patch",      "patches"],
+    injection:  ["injection",  "injections"],
+    other:      ["unit",       "unitsPlural"],
+  }
+  const [sing, plur] = map[unitType] ?? ["unit", "unitsPlural"]
+  if (count === undefined) return t.units[plur] as string
+  return (count === 1 ? t.units[sing] : t.units[plur]) as string
+}
+
+/** Translate a frequency (times-per-day) using current locale translations */
+export function tFrequencyLabel(t: Translation, timesPerDay: number): string {
+  switch (timesPerDay) {
+    case 1: return t.frequency.onceDaily
+    case 2: return t.frequency.twiceDaily
+    case 3: return t.frequency.threeTimesDaily
+    case 4: return t.frequency.fourTimesDaily
+    default: return `${timesPerDay}${t.frequency.timesDaily}`
+  }
+}
+

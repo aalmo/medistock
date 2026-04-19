@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { sendExpiryEmail } from "@/lib/email"
+import { expiryAlertMessage, expiryEmailSentMessage } from "@/lib/notification-messages"
 // SMTP-based expiry check cron
 
 export async function POST(req: NextRequest) {
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
 async function runExpiryCheck() {
   const now   = new Date()
   const users = await prisma.user.findMany({
-    select: { id: true, email: true, name: true, emailNotifs: true, emailAlertLevel: true, expiryAlertDays: true },
+    select: { id: true, email: true, name: true, emailNotifs: true, emailAlertLevel: true, expiryAlertDays: true, language: true },
   })
 
   let inAppCreated = 0
@@ -64,9 +65,7 @@ async function runExpiryCheck() {
             patientId: pm.patient.id,
             type:      "EXPIRY_ALERT",
             channel:   "IN_APP",
-            message:   isExpired
-              ? `⚠️ EXPIRED: ${pm.patient.name}'s ${medName} (Lot: ${pkg.lotNumber ?? "N/A"}) expired ${Math.abs(daysLeft)} day${Math.abs(daysLeft) !== 1 ? "s" : ""} ago.`
-              : `${isCritical ? "🔴" : "🟡"} ${pm.patient.name}'s ${medName} expires in ${daysLeft} day${daysLeft !== 1 ? "s" : ""} (Lot: ${pkg.lotNumber ?? "N/A"}).`,
+            message:   expiryAlertMessage(pm.patient.name, medName, daysLeft, isExpired, user.language),
             metadata:  JSON.stringify({ packageId: pkg.id, daysLeft }),
           },
         })
@@ -113,7 +112,7 @@ async function runExpiryCheck() {
                 patientId: patientPkgs[0].patientMedication.patient.id,
                 type:      "EXPIRY_ALERT",
                 channel:   "EMAIL",
-                message:   `Expiry email sent for ${patientName}: ${patientPkgs.length} package(s) expiring soon.`,
+                message:   expiryEmailSentMessage(patientName, patientPkgs.length, user.language),
                 sentAt:    now,
               },
             })

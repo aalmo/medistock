@@ -6,9 +6,9 @@ import {
   Pill, Wind, Droplets, Syringe, Zap, Package, FlaskConical,
   ChevronLeft, ChevronRight
 } from "lucide-react"
-import { getFrequencyLabel, parseJsonArray } from "@/lib/calculations"
+import { parseJsonArray } from "@/lib/calculations"
 import { format, startOfWeek, addDays, isSameDay, subWeeks, addWeeks } from "date-fns"
-import { useT } from "@/lib/i18n/context"
+import { useT, tFrequencyLabel } from "@/lib/i18n/context"
 
 const UNIT_THEME: Record<string, { bg: string; text: string; border: string; icon: React.ElementType }> = {
   pill:       { bg: "bg-violet-50", text: "text-violet-700", border: "border-violet-200", icon: Pill },
@@ -206,7 +206,7 @@ export default function SchedulesPage() {
                     <p className="truncate text-xs text-slate-500">{patient}</p>
                     <div className="mt-1.5 flex flex-wrap items-center gap-2">
                       <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
-                        {getFrequencyLabel(times.length)}
+                        {tFrequencyLabel(t, times.length)}
                       </span>
                       {times.map((tt, i) => (
                         <span key={i} className={`rounded-md px-1.5 py-0.5 font-mono text-[10px] ${theme.bg} ${theme.text}`}>{tt}</span>

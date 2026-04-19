@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from "react"
 import { Search, Pill, Wind, Droplets, Syringe, Zap, Package, FlaskConical, Users, Clock, Trash2, Camera } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { parseJsonArray, unitLabel, getFrequencyLabel } from "@/lib/calculations"
+import { parseJsonArray } from "@/lib/calculations"
 import { useToast } from "@/hooks/use-toast"
-import { useT } from "@/lib/i18n/context"
+import { useT, tUnitLabel, tFrequencyLabel } from "@/lib/i18n/context"
 
 // ── same theme map as patient detail page ──────────────────────────────────
 const UNIT_THEME: Record<string, {
@@ -79,15 +79,15 @@ export default function MedicationsPage() {
   useEffect(() => { fetchMeds() }, [])
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Delete "${name}" from the catalog? This cannot be undone.`)) return
+    if (!confirm(t.medications.deleteConfirm.replace("{name}", name))) return
     setDeleting(id)
     try {
       const res = await fetch(`/api/medications/${id}`, { method: "DELETE" })
       if (res.ok) {
         setMeds(prev => prev.filter(m => m.id !== id))
-        toast({ title: `"${name}" deleted from catalog` })
+        toast({ title: `"${name}" ${t.medications.deleted}` })
       } else {
-        toast({ title: "Failed to delete", variant: "destructive" })
+        toast({ title: t.medications.deleteFailed, variant: "destructive" })
       }
     } finally {
       setDeleting(null)
@@ -120,9 +120,9 @@ export default function MedicationsPage() {
       })
       if (!putRes.ok) throw new Error("Save failed")
       setMeds(prev => prev.map(m => m.id === medId ? { ...m, imageUrl: url } : m))
-      toast({ title: "Photo updated" })
+      toast({ title: t.medications.photoUpdated })
     } catch {
-      toast({ title: "Upload failed", variant: "destructive" })
+      toast({ title: t.medications.uploadFailed, variant: "destructive" })
     } finally {
       setUploading(null)
     }
@@ -214,7 +214,7 @@ export default function MedicationsPage() {
                 : "border-slate-200 bg-white text-slate-600 hover:border-slate-400"
             }`}
           >
-            All
+            {t.medications.all}
           </button>
           {allTags.map(tag => (
             <button
@@ -226,7 +226,7 @@ export default function MedicationsPage() {
                   : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
               }`}
             >
-              {tag}
+              {(t.tagLabels as Record<string, string>)[tag] ?? tag}
             </button>
           ))}
         </div>
@@ -245,7 +245,7 @@ export default function MedicationsPage() {
             <Pill className="h-8 w-8 opacity-30" />
           </div>
           <p className="font-medium">{t.medications.noMeds}</p>
-          <p className="mt-1 text-sm">Medications appear here once added to a patient</p>
+          <p className="mt-1 text-sm">{t.medications.medsAppearHint}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -272,9 +272,9 @@ export default function MedicationsPage() {
             const times    = firstSch ? parseJsonArray<string>(firstSch.timesOfDay, ["08:00"]) : []
             const doseQty  = firstSch?.pillsPerDose ?? null
 
-            // Dose line: e.g. "1 pill (400 mg)" or "2 inhalations (50 mcg × 2)"
+            // Dose line: e.g. "1 حبة (400 mg)" or "2 استنشاق (50 mcg × 2)"
             const doseLine = doseQty
-              ? `${doseQty} ${unitLabel(unit, doseQty)}${strength
+              ? `${doseQty} ${tUnitLabel(t, unit, doseQty)}${strength
                   ? ` (${doseQty === 1 ? strength : `${doseQty}× ${strength}`})`
                   : ""}`
               : strength
@@ -357,7 +357,7 @@ export default function MedicationsPage() {
                             ? <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
                             : <>
                                 <Camera className="h-5 w-5 text-slate-300 transition-colors group-hover/up:text-slate-400" />
-                                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-300 transition-colors group-hover/up:text-slate-400">Add Photo</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-300 transition-colors group-hover/up:text-slate-400">{t.medications.addPhoto}</span>
                               </>
                           }
                         </button>
@@ -382,7 +382,7 @@ export default function MedicationsPage() {
                                 : "border-blue-100 bg-blue-50 text-blue-600 hover:border-blue-300"
                             }`}
                           >
-                            {tag}
+                            {(t.tagLabels as Record<string, string>)[tag] ?? tag}
                           </button>
                         ))}
                       </div>
@@ -402,7 +402,7 @@ export default function MedicationsPage() {
                     <div className="flex flex-wrap items-center gap-1.5">
                       <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">
                         <Clock className="h-3 w-3" />
-                        {getFrequencyLabel(times.length)}
+                        {tFrequencyLabel(t, times.length)}
                       </span>
                       {times.map((t, i) => (
                         <span key={i} className={`rounded-md px-2 py-0.5 font-mono text-[11px] ${theme.iconBg} ${theme.iconColor}`}>
@@ -417,10 +417,10 @@ export default function MedicationsPage() {
                     <span className="inline-flex items-center gap-1.5 text-xs text-slate-500">
                       <Users className="h-3.5 w-3.5" />
                       {patientCount === 0
-                        ? <span className="italic text-slate-400">Not assigned</span>
+                        ? <span className="italic text-slate-400">{t.medications.notAssigned}</span>
                         : patientCount === 1
                           ? assignments[0].patient.name
-                          : `${patientCount} patients`}
+                          : `${patientCount} ${t.medications.patients}`}
                     </span>
                     <div className="flex items-center gap-2">
                       {med.rxcui && (
@@ -432,14 +432,14 @@ export default function MedicationsPage() {
                         <button
                           onClick={() => handleDelete(med.id, headline)}
                           disabled={deleting === med.id}
-                          title="Delete from catalog"
+                          title={t.medications.deleteFromCatalog}
                           className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-[11px] font-medium text-red-500 transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           {deleting === med.id
                             ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-red-400 border-t-transparent" />
                             : <Trash2 className="h-3 w-3" />
                           }
-                          Delete
+                          {t.medications.deleteFromCatalog}
                         </button>
                       )}
                     </div>
@@ -448,7 +448,7 @@ export default function MedicationsPage() {
                   {/* Ingredients */}
                   {med.ingredients && (
                     <p className="line-clamp-2 text-[11px] leading-relaxed text-slate-500">
-                      <span className="font-medium text-slate-700">Active: </span>
+                      <span className="font-medium text-slate-700">{t.medications.activeIngredients}: </span>
                       {med.ingredients}
                     </p>
                   )}

@@ -1,66 +1,45 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 160" width="520" height="160">
+<svg viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
   <defs>
-    <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0EA5E9"/>
-      <stop offset="100%" stop-color="#0D9488"/>
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0ea5e9"/>
+      <stop offset="100%" stop-color="#0d9488"/>
     </linearGradient>
     <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#0EA5E9"/>
-      <stop offset="100%" stop-color="#0D9488"/>
+      <stop offset="0%" stop-color="#0ea5e9"/>
+      <stop offset="100%" stop-color="#0d9488"/>
     </linearGradient>
-    <linearGradient id="shineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.20"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.00"/>
-    </linearGradient>
-    <filter id="iconShadow" x="-20%" y="-20%" width="140%" height="150%">
-      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0369A1" flood-opacity="0.28"/>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="10" flood-color="#0369a1" flood-opacity="0.28"/>
     </filter>
-    <filter id="dotGlow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="2" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <clipPath id="iconClip">
-      <rect x="0" y="0" width="130" height="130" rx="32"/>
-    </clipPath>
   </defs>
 
-  <!-- ICON MARK — origin (15,15) -->
-  <g transform="translate(15,15)" filter="url(#iconShadow)">
-    <!-- Rounded square bg -->
-    <rect width="130" height="130" rx="32" fill="url(#mainGrad)"/>
-    <!-- Glass shine -->
-    <rect width="130" height="65" rx="32" fill="url(#shineGrad)" clip-path="url(#iconClip)"/>
-    <!-- Cross vertical -->
-    <rect x="51" y="25" width="28" height="80" rx="9" fill="white"/>
-    <!-- Cross horizontal -->
-    <rect x="25" y="51" width="80" height="28" rx="9" fill="white"/>
-    <!-- Inventory mini-bars -->
-    <rect x="84"  y="92"  width="8" height="15" rx="2.5" fill="white" opacity="0.55"/>
-    <rect x="96"  y="85"  width="8" height="22" rx="2.5" fill="white" opacity="0.75"/>
-    <rect x="108" y="97"  width="8" height="10" rx="2.5" fill="white" opacity="0.45"/>
-    <!-- Accent dot -->
-    <circle cx="112" cy="18" r="9" fill="white" opacity="0.15"/>
-    <circle cx="112" cy="18" r="5" fill="#2DD4BF" filter="url(#dotGlow)"/>
-  </g>
+  <!-- ── ICON MARK ── -->
+  <!-- Rounded square -->
+  <rect x="20" y="20" width="170" height="170" rx="40" fill="url(#iconGrad)" filter="url(#shadow)"/>
 
-  <!-- WORDMARK -->
-  <!-- "Medi" dark slate -->
-  <text x="170" y="104"
-    font-family="'Segoe UI', system-ui, sans-serif"
-    font-size="70" font-weight="800" letter-spacing="-2.5"
-    fill="#0F172A">Medi</text>
-  <!-- "Stock" gradient -->
-  <text x="338" y="104"
-    font-family="'Segoe UI', system-ui, sans-serif"
-    font-size="70" font-weight="800" letter-spacing="-2.5"
-    fill="url(#textGrad)">Stock</text>
+  <!-- Glass sheen top half -->
+  <rect x="20" y="20" width="170" height="85" rx="40" fill="white" opacity="0.10"/>
+
+  <!-- Medical cross (white) -->
+  <rect x="83"  y="57"  width="44" height="96" rx="12" fill="white"/>
+  <rect x="57"  y="83"  width="96" height="44" rx="12" fill="white"/>
+
+  <!-- Inventory bars bottom-right (over cross) -->
+  <rect x="132" y="148" width="10" height="18" rx="3" fill="white" opacity="0.55"/>
+  <rect x="146" y="139" width="10" height="27" rx="3" fill="white" opacity="0.75"/>
+  <rect x="160" y="153" width="10" height="13" rx="3" fill="white" opacity="0.45"/>
+
+  <!-- Accent dot top-right -->
+  <circle cx="166" cy="36" r="12" fill="white" opacity="0.15"/>
+  <circle cx="166" cy="36" r="7"  fill="#2dd4bf"/>
+
+  <!-- ── WORDMARK ── -->
+  <text x="215" y="133" font-size="78" font-weight="800" letter-spacing="-3" fill="#0f172a">Medi</text>
+  <text x="394" y="133" font-size="78" font-weight="800" letter-spacing="-3" fill="url(#iconGrad)">Stock</text>
 
   <!-- Tagline -->
-  <text x="171" y="131"
-    font-family="'Segoe UI', system-ui, sans-serif"
-    font-size="11.5" font-weight="500" letter-spacing="2.8"
-    fill="#94A3B8">MEDICATION SCHEDULING &amp; INVENTORY</text>
+  <text x="216" y="163" font-size="13.5" font-weight="500" letter-spacing="2.2" fill="#94a3b8">MEDICATION SCHEDULING &amp; INVENTORY</text>
 
-  <!-- Accent rule -->
-  <rect x="171" y="141" width="330" height="2.5" rx="1.25" fill="url(#textGrad)" opacity="0.40"/>
+  <!-- Thin accent rule -->
+  <rect x="216" y="174" width="405" height="3" rx="1.5" fill="url(#textGrad)" opacity="0.45"/>
 </svg>

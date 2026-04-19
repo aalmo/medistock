@@ -66,7 +66,7 @@ function PackageModal({
   const selectedPm = patientMeds.find(p => p.id === form.patientMedicationId)
 
   const save = async () => {
-    if (!form.patientMedicationId || !form.expiryDate) { setError("Medication and expiry date are required."); return }
+    if (!form.patientMedicationId || !form.expiryDate) { setError(t.packages.medAndExpiryRequired); return }
     setSaving(true); setError("")
       try {
         const url    = editPkg ? `/api/packages/${editPkg.id}` : "/api/packages"
@@ -79,9 +79,9 @@ function PackageModal({
             unitType:  selectedPm?.unitType ?? "pill",
           }),
         })
-        if (!res.ok) { setError("Failed to save package. Please try again."); return }
+        if (!res.ok) { setError(t.packages.saveFailed); return }
         onSaved()
-      } catch { setError("Failed to save package. Please try again.") }
+      } catch { setError(t.packages.saveFailed) }
     finally   { setSaving(false) }
   }
 
@@ -134,7 +134,7 @@ function PackageModal({
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Quantity ({selectedPm?.unitType ?? "units"})
+                {t.packages.quantityUnit} ({selectedPm?.unitType ?? "units"})
               </label>
               <input type="number" min={0.5} step={0.5}
                 className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
@@ -242,7 +242,7 @@ export default function PackagesPage() {
   }, [load])
 
   const deletePackage = async (id: string) => {
-    if (!confirm("Delete this package?")) return
+    if (!confirm(t.packages.deleteConfirmPkg)) return
     setDeleting(id)
     await fetch(`/api/packages/${id}`, { method: "DELETE" })
     setPackages(p => p.filter(pkg => pkg.id !== id))
@@ -348,12 +348,15 @@ export default function PackagesPage() {
       {/* ── Filter bar ── */}
       <div className="dashboard-surface p-1.5">
         <div className="flex rounded-xl bg-slate-100 p-0.5 text-sm">
-          {(["all","expired","critical","warning","good"] as const).map(f => (
-            <button key={f} onClick={() => setFilter(f)}
-              className={`flex-1 rounded-[10px] px-3 py-1.5 font-semibold capitalize transition-all ${filter === f ? "bg-white text-slate-900 shadow-[0_4px_12px_-6px_rgba(15,23,42,0.35)]" : "text-slate-500 hover:text-slate-700"}`}>
-              {f === "all" ? `${t.packages.filterAll} (${packages.length})` : f}
-            </button>
-          ))}
+          {(["all","expired","critical","warning","good"] as const).map(f => {
+            const labels = { all: `${t.packages.filterAll} (${packages.length})`, expired: t.packages.expired, critical: t.packages.criticalLabel, warning: t.packages.warningLabel, good: t.packages.goodLabel }
+            return (
+              <button key={f} onClick={() => setFilter(f)}
+                className={`flex-1 rounded-[10px] px-3 py-1.5 font-semibold transition-all ${filter === f ? "bg-white text-slate-900 shadow-[0_4px_12px_-6px_rgba(15,23,42,0.35)]" : "text-slate-500 hover:text-slate-700"}`}>
+                {labels[f]}
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -425,13 +428,13 @@ export default function PackagesPage() {
                             {/* Info */}
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${s.badge}`}>{s.label}</span>
-                                {pkg.opened && <span className="rounded-full bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700">Opened</span>}
-                                {pkg.lotNumber && <span className="font-mono text-[10px] text-slate-500">Lot: {pkg.lotNumber}</span>}
+                                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${s.badge}`}>{s.label}</span>
+                                {pkg.opened && <span className="rounded-full bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700">{t.packages.openedLabel}</span>}
+                                {pkg.lotNumber && <span className="font-mono text-[10px] text-slate-500">{t.packages.lotLabel}: {pkg.lotNumber}</span>}
                               </div>
                               <p className="mt-1 text-xs text-slate-600">
-                                <span className="font-semibold">{pkg.quantity} Doses/Package</span>
-                                <span className="text-slate-500"> · Expires {expFmt}</span>
+                                <span className="font-semibold">{pkg.quantity} {t.packages.dosesPerPackage}</span>
+                                <span className="text-slate-500"> · {t.packages.expires} {expFmt}</span>
                               </p>
                               {pkg.notes && <p className="mt-0.5 text-[11px] italic text-slate-500">{pkg.notes}</p>}
                             </div>
@@ -441,7 +444,7 @@ export default function PackagesPage() {
                               <button
                                 onClick={() => { setEditTarget(pkg); setModal("edit") }}
                                 className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-white/90"
-                                title="Edit package"
+                                title={t.packages.editTitle}
                               >
                                 <Pencil className="h-3.5 w-3.5 text-slate-500"/>
                               </button>
@@ -449,7 +452,7 @@ export default function PackagesPage() {
                                 onClick={() => deletePackage(pkg.id)}
                                 disabled={deleting === pkg.id}
                                 className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-red-50"
-                                title="Delete package"
+                                title={t.packages.deleteTitle}
                               >
                                 {deleting === pkg.id
                                   ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-red-200 border-t-red-500"/>
@@ -472,7 +475,7 @@ export default function PackagesPage() {
                       }}
                       className="flex w-full items-center gap-2 px-5 py-3 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-50/60"
                     >
-                      <Plus className="h-3.5 w-3.5"/> Add another package for this medication
+                      <Plus className="h-3.5 w-3.5"/> {t.packages.addAnotherBtn}
                     </button>
                   </div>
                 )}

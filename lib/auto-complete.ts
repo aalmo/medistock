@@ -7,6 +7,7 @@
 import { prisma } from "@/lib/prisma"
 import { calcAvgDailyPills, calcDaysRemaining, parseJsonArray } from "@/lib/calculations"
 import { sendLowStockEmail } from "@/lib/email"
+import { lowStockMessage } from "@/lib/notification-messages"
 
 export async function runAutoComplete() {
   const now = new Date()
@@ -85,7 +86,7 @@ export async function runAutoComplete() {
             userId:    pm.patient.userId,
             patientId: pm.patientId,
             type:      "LOW_STOCK",
-            message:   `${pm.patient.name}'s ${pm.medication.name} is running low — ${newStock.toFixed(1)} left (~${daysLeft} days).`,
+            message:   lowStockMessage(pm.patient.name, pm.medication.name, newStock, daysLeft, user.language),
             channel:   "IN_APP",
           },
         })
