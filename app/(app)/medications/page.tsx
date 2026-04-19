@@ -41,8 +41,17 @@ const TAG_THEME: Record<string, { icon: React.ElementType; bg: string; text: str
   "Allergy":              { icon: Leaf,         bg: "bg-amber-50",   text: "text-amber-600",  border: "border-amber-200" },
   "Gastric / Acid Reflux":{ icon: FlaskConical, bg: "bg-orange-50",  text: "text-orange-600", border: "border-orange-200" },
   "Sleep":                { icon: Moon,         bg: "bg-indigo-50",  text: "text-indigo-600", border: "border-indigo-200" },
-  "Blood Thinner":        { icon: Droplets,     bg: "bg-rose-50",    text: "text-rose-600",   border: "border-rose-200" },
-  "Immunosuppressant":    { icon: Shield,       bg: "bg-blue-50",    text: "text-blue-600",   border: "border-blue-200" },
+  "Blood Thinner":                  { icon: Droplets,     bg: "bg-rose-50",    text: "text-rose-600",    border: "border-rose-200" },
+  "Immunosuppressant":              { icon: Shield,       bg: "bg-blue-50",    text: "text-blue-600",    border: "border-blue-200" },
+  "Airway Opener":                  { icon: Wind,         bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200" },
+  "Lung Scarring":                  { icon: Activity,     bg: "bg-slate-50",   text: "text-slate-600",   border: "border-slate-300" },
+  "Water Pill":                     { icon: Droplets,     bg: "bg-cyan-50",    text: "text-cyan-700",    border: "border-cyan-200" },
+  "Blood Pressure Lowerer":         { icon: Heart,        bg: "bg-pink-50",    text: "text-pink-700",    border: "border-pink-200" },
+  "Chest Pain Preventer":           { icon: Heart,        bg: "bg-orange-50",  text: "text-orange-600",  border: "border-orange-200" },
+  "Kidney Protector":               { icon: Shield,       bg: "bg-cyan-50",    text: "text-cyan-600",    border: "border-cyan-200" },
+  "Blood Sugar Controller":         { icon: Activity,     bg: "bg-lime-50",    text: "text-lime-700",    border: "border-lime-200" },
+  "Insulin Helper":                 { icon: Syringe,      bg: "bg-violet-50",  text: "text-violet-600",  border: "border-violet-200" },
+  "Inhaled Swelling Reducer":       { icon: Wind,         bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
 }
 
 // derive a consistent theme from the medication's own form/unit field

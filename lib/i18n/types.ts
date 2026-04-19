@@ -461,8 +461,17 @@ export interface Translation {
     "Allergy":              string
     "Gastric / Acid Reflux": string
     "Sleep":                string
-    "Blood Thinner":        string
-    "Immunosuppressant":    string
+    "Blood Thinner":              string
+    "Immunosuppressant":          string
+    "Airway Opener":              string
+    "Lung Scarring":              string
+    "Water Pill":                 string
+    "Blood Pressure Lowerer":     string
+    "Chest Pain Preventer":       string
+    "Kidney Protector":           string
+    "Blood Sugar Controller":     string
+    "Insulin Helper":             string
+    "Inhaled Swelling Reducer":   string
   }
 
   // ── Units & Frequency ─────────────────────────────────────────────────

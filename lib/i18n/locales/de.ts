@@ -235,6 +235,11 @@ const de: Translation = {
     "Epilepsy": "Epilepsie", "Osteoporosis": "Osteoporose", "Vitamin / Supplement": "Vitamin / Ergänzung",
     "Allergy": "Allergie", "Gastric / Acid Reflux": "Magen / Sodbrennen", "Sleep": "Schlaf",
     "Blood Thinner": "Blutverdünner", "Immunosuppressant": "Immunsuppressivum",
+    "Airway Opener": "Bronchodilatator", "Lung Scarring": "Lungenfibrose-Mittel",
+    "Water Pill": "Entwässerungsmittel", "Blood Pressure Lowerer": "Blutdrucksenker",
+    "Chest Pain Preventer": "Antianginal-Mittel", "Kidney Protector": "Nierenschutzmittel",
+    "Blood Sugar Controller": "Blutzuckerregler", "Insulin Helper": "Insulinsensibilisator",
+    "Inhaled Swelling Reducer": "Inhalatives Entzündungshemmer",
   },
   units: {
     pill: "Tablette", pills: "Tabletten",

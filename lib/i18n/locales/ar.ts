@@ -365,6 +365,11 @@ const ar: Translation = {
     "Epilepsy": "صرع", "Osteoporosis": "هشاشة عظام", "Vitamin / Supplement": "فيتامين / مكمل",
     "Allergy": "حساسية", "Gastric / Acid Reflux": "معدي / حموضة", "Sleep": "نوم",
     "Blood Thinner": "مميع دم", "Immunosuppressant": "مثبط مناعة",
+    "Airway Opener": "موسّع الشعب الهوائية", "Lung Scarring": "تليّف رئوي",
+    "Water Pill": "مدرّ البول", "Blood Pressure Lowerer": "خافض ضغط الدم",
+    "Chest Pain Preventer": "مانع الذبحة الصدرية", "Kidney Protector": "واقٍ للكلى",
+    "Blood Sugar Controller": "منظّم سكر الدم", "Insulin Helper": "مساعد الأنسولين",
+    "Inhaled Swelling Reducer": "مضاد التهاب استنشاقي",
   },
   units: {
     pill: "حبة", pills: "حبوب",
