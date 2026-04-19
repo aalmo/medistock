@@ -7,6 +7,7 @@ import {
 } from "lucide-react"
 import { formatDateTime } from "@/lib/utils"
 import { useT, formatDateLocale } from "@/lib/i18n/context"
+import { TagBadges } from "@/components/ui/tag-badges"
 
 interface Notification {
   id:        string
@@ -15,6 +16,7 @@ interface Notification {
   message:   string
   read:      boolean
   createdAt: string
+  metadata?: string | null
   patient?:  { name: string } | null
 }
 
@@ -198,6 +200,14 @@ export default function NotificationsPage() {
                               <Mail className="h-2.5 w-2.5" /> {t.notifications.emailSent}
                             </span>
                           )}
+                          {/* Category tags from metadata */}
+                          {(() => {
+                            try {
+                              const meta = n.metadata ? JSON.parse(n.metadata) : null
+                              const tags: string[] = meta?.tags ? JSON.parse(meta.tags) : []
+                              return <TagBadges tags={tags} labels={t.tagLabels as Record<string, string>} />
+                            } catch { return null }
+                          })()}
                         </div>
                         <p className="text-sm font-medium text-slate-800 leading-snug">{n.message}</p>
                         <p className="mt-1 text-[11px] font-medium text-slate-400">{formatDateTime(n.createdAt, locale)}</p>

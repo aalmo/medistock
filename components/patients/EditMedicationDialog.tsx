@@ -92,6 +92,9 @@ export function EditMedicationDialog({ pm, open, onClose }: EditMedicationDialog
     "Anti-inflammatory", "Cholesterol", "Thyroid", "Asthma", "Anticoagulant",
     "Antidepressant", "Anxiety", "Epilepsy", "Osteoporosis", "Vitamin / Supplement",
     "Allergy", "Gastric / Acid Reflux", "Sleep", "Blood Thinner", "Immunosuppressant",
+    "Airway Opener", "Lung Scarring", "Water Pill", "Blood Pressure Lowerer",
+    "Chest Pain Preventer", "Kidney Protector", "Blood Sugar Controller",
+    "Insulin Helper", "Inhaled Swelling Reducer",
   ] as const
 
   // Helper: display label for a tag key

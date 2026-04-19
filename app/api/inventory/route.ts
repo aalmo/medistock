@@ -58,6 +58,7 @@ export async function GET(req: NextRequest) {
         medicationName:      pm.medication.name,
         medicationStrength:  pm.medication.strength,
         medicationForm:      pm.medication.form,
+        medicationTags:      pm.medication.tags ?? "[]",
         unitType:            pm.unitType,
         pillsInStock:        effectiveStock,
         rawPillsInStock:     pm.pillsInStock,

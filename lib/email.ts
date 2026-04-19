@@ -9,6 +9,7 @@ import en from "@/lib/i18n/locales/en"
 import ar from "@/lib/i18n/locales/ar"
 import de from "@/lib/i18n/locales/de"
 import type { Translation } from "@/lib/i18n/types"
+import { TAG_EMAIL, DEFAULT_TAG_EMAIL } from "@/lib/tag-colors"
 
 /** Always creates a fresh transporter so env changes take effect without restart. */
 function createTransporter() {
@@ -106,6 +107,7 @@ export interface LowStockEmailData {
     daysLeft:     number
     threshold:    number
     status:       "low" | "critical"
+    tags?:        string   // JSON array string
   }>
   language?: string // NEW: pass language
 }
@@ -132,6 +134,11 @@ export function buildLowStockEmail(data: LowStockEmailData, t: Translation): { s
       const barColor = med.status === "critical" ? "#ef4444" : "#f59e0b"
       const displayName = med.brandName ?? med.name
       const subName     = med.brandName ? med.name : ""
+      const tags: string[] = (() => { try { return med.tags ? JSON.parse(med.tags) : [] } catch { return [] } })()
+      const tagBadges = tags.map(tag => {
+        const ec = TAG_EMAIL[tag] ?? DEFAULT_TAG_EMAIL
+        return `<span style="display:inline-block;margin:0 3px 3px 0;padding:2px 8px;border-radius:99px;border:1px solid ${ec.border};background:${ec.bg};color:${ec.text};font-size:10px;font-weight:700;font-family:'Cairo',sans-serif;">${tag}</span>`
+      }).join("")
       return `
       <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:12px;border-radius:16px;overflow:hidden;border:1.5px solid ${c.border};background:${c.bg};">
         <tr><td style="padding:18px 20px;">
@@ -139,6 +146,7 @@ export function buildLowStockEmail(data: LowStockEmailData, t: Translation): { s
             <td>
               <span style="font-size:17px;font-weight:800;color:#111827;font-family:'Cairo',sans-serif;">${displayName}${med.strength ? ` (${med.strength})` : ""}</span>
               ${subName ? `<br/><span style="font-size:12px;color:#6b7280;font-family:'Cairo',sans-serif;">${subName}</span>` : ""}
+              ${tagBadges ? `<div style="margin-top:6px;">${tagBadges}</div>` : ""}
             </td>
             <td align="right" valign="top">
               <span style="background:${c.badge};color:${c.badgeText};font-size:11px;font-weight:800;padding:4px 10px;border-radius:99px;display:inline-block;font-family:'Cairo',sans-serif;">${c.icon} ${c.label}</span>
@@ -255,6 +263,7 @@ export interface ExpiryEmailData {
     unitType:       string
     daysLeft:       number
     status:         "expired" | "critical" | "warning"
+    tags?:          string   // JSON array string
   }>
   language?: string // NEW: pass language
 }
@@ -282,12 +291,18 @@ export function buildExpiryEmail(data: ExpiryEmailData, t: Translation): { subje
     const daysLabel = pkg.daysLeft <= 0
       ? `Expired ${Math.abs(pkg.daysLeft)} day${Math.abs(pkg.daysLeft) !== 1 ? "s" : ""} ago`
       : `Expires in ${pkg.daysLeft} day${pkg.daysLeft !== 1 ? "s" : ""}`
+    const tags: string[] = (() => { try { return pkg.tags ? JSON.parse(pkg.tags) : [] } catch { return [] } })()
+    const tagBadges = tags.map(tag => {
+      const ec = TAG_EMAIL[tag] ?? DEFAULT_TAG_EMAIL
+      return `<span style="display:inline-block;margin:0 3px 3px 0;padding:2px 8px;border-radius:99px;border:1px solid ${ec.border};background:${ec.bg};color:${ec.text};font-size:10px;font-weight:700;font-family:'Cairo',sans-serif;">${tag}</span>`
+    }).join("")
     return `
     <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:12px;border-radius:16px;overflow:hidden;border:1.5px solid ${c.border};background:${c.bg};">
       <tr><td style="padding:16px 20px;">
         <table cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
           <td><span style="font-size:15px;font-weight:800;color:#111827;font-family:'Cairo',sans-serif;">${pkg.medicationName}${pkg.strength ? ` (${pkg.strength})` : ""}</span>
-              ${pkg.lotNumber ? `<br/><span style="font-size:11px;color:#6b7280;font-family:'Cairo',sans-serif;">Lot: ${pkg.lotNumber}</span>` : ""}</td>
+              ${pkg.lotNumber ? `<br/><span style="font-size:11px;color:#6b7280;font-family:'Cairo',sans-serif;">Lot: ${pkg.lotNumber}</span>` : ""}
+              ${tagBadges ? `<div style="margin-top:5px;">${tagBadges}</div>` : ""}</td>
           <td align="right" valign="top"><span style="background:${c.badge};color:#fff;font-size:11px;font-weight:800;padding:4px 10px;border-radius:99px;display:inline-block;font-family:'Cairo',sans-serif;">${c.icon} ${c.label}</span></td>
         </tr></table>
         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:12px;"><tr>

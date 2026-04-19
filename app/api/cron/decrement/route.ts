@@ -134,6 +134,7 @@ export async function POST(req: NextRequest) {
             type:      "LOW_STOCK",
             message:   lowStockMessage(pm.patient.name, pm.medication.name, newStock, daysLeft, pm.patient.user?.language),
             channel:   "IN_APP",
+            metadata:  JSON.stringify({ medicationId: pm.medicationId, tags: pm.medication.tags ?? "[]" }),
           },
         })
         results.lowStockAlerts++

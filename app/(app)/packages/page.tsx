@@ -9,6 +9,8 @@ import {
 } from "lucide-react"
 import { useT } from "@/lib/i18n/context"
 import type { Locale } from "@/lib/i18n/types"
+import { parseJsonArray } from "@/lib/calculations"
+import { TagBadges } from "@/components/ui/tag-badges"
 
 const DATE_FNS_LOCALES: Record<Locale, any> = {
   en: enUS,
@@ -27,7 +29,7 @@ interface MedPackage {
   opened:              boolean
   notes:               string | null
   patientMedication: {
-    medication: { name: string; brandName: string | null; strength: string | null }
+    medication: { name: string; brandName: string | null; strength: string | null; tags: string | null }
     patient:    { id: string; name: string }
   }
 }
@@ -47,7 +49,7 @@ function getExpStatus(expiryDate: string, alertDays = 30) {
 interface PatientMed {
   id: string
   unitType: string
-  medication: { name: string; brandName: string | null; strength: string | null }
+  medication: { name: string; brandName: string | null; strength: string | null; tags: string | null }
   patient:    { id: string; name: string }
 }
 
@@ -271,7 +273,7 @@ export default function PackagesPage() {
   const goodCount     = packages.filter(p => getExpStatus(p.expiryDate, alertDays).key === "good").length
 
   // Group by patient+medication
-  const grouped = new Map<string, { label: string; patientName: string; medName: string; pmId: string; items: MedPackage[] }>()
+  const grouped = new Map<string, { label: string; patientName: string; medName: string; pmId: string; tags: string[]; items: MedPackage[] }>()
   for (const pkg of filtered) {
     const key = pkg.patientMedicationId
     const med = pkg.patientMedication.medication
@@ -281,6 +283,7 @@ export default function PackagesPage() {
       label:       `${pat.name} — ${med.brandName ?? med.name}${med.strength ? ` (${med.strength})` : ""}`,
       patientName: pat.name,
       medName:     med.brandName ?? med.name,
+      tags:        parseJsonArray<string>(med.tags ?? "[]", []),
       items:       [],
     })
     grouped.get(key)!.items.push(pkg)
@@ -408,7 +411,13 @@ export default function PackagesPage() {
                   </div>
                   <div className="flex-1 text-start">
                     <p className="text-sm font-semibold text-slate-900">{group.label}</p>
-                    <p className="mt-0.5 text-xs text-slate-500">{group.items.length} {group.items.length !== 1 ? t.packages.packages : t.packages.package}</p>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                      <span className="text-xs text-slate-500">{group.items.length} {group.items.length !== 1 ? t.packages.packages : t.packages.package}</span>
+                      <TagBadges
+                        tags={group.tags}
+                        labels={t.tagLabels as Record<string, string>}
+                      />
+                    </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${ws.badge}`}>

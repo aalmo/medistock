@@ -43,6 +43,7 @@ export async function POST() {
         daysLeft:     4,
         threshold:    7,
         status:       "critical",
+        tags:         JSON.stringify(["Pain Relief", "Anti-inflammatory"]),
       },
       {
         name:         "Salbutamol",
@@ -53,6 +54,7 @@ export async function POST() {
         daysLeft:     9,
         threshold:    14,
         status:       "low",
+        tags:         JSON.stringify(["Asthma", "Airway Opener"]),
       },
     ],
     language: user.language || "en",

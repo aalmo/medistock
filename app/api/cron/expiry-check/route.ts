@@ -33,7 +33,7 @@ async function runExpiryCheck() {
       include: {
         patientMedication: {
           include: {
-            medication: { select: { name: true, brandName: true, strength: true } },
+            medication: { select: { name: true, brandName: true, strength: true, tags: true } },
             patient:    { select: { id: true, name: true } },
           },
         },
@@ -66,7 +66,7 @@ async function runExpiryCheck() {
             type:      "EXPIRY_ALERT",
             channel:   "IN_APP",
             message:   expiryAlertMessage(pm.patient.name, medName, daysLeft, isExpired, user.language),
-            metadata:  JSON.stringify({ packageId: pkg.id, daysLeft }),
+            metadata:  JSON.stringify({ packageId: pkg.id, daysLeft, tags: pm.medication.tags ?? "[]" }),
           },
         })
         inAppCreated++
@@ -96,6 +96,7 @@ async function runExpiryCheck() {
               return {
                 medicationName: pkg.patientMedication.medication.brandName ?? pkg.patientMedication.medication.name,
                 strength:       pkg.patientMedication.medication.strength   ?? undefined,
+                tags:           pkg.patientMedication.medication.tags       ?? "[]",
                 lotNumber:      pkg.lotNumber  ?? undefined,
                 expiryDate:     pkg.expiryDate.toISOString(),
                 quantity:       pkg.quantity,

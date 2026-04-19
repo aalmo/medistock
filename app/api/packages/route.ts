@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     include: {
       patientMedication: {
         include: {
-          medication: { select: { name: true, brandName: true, strength: true } },
+          medication: { select: { name: true, brandName: true, strength: true, tags: true } },
           patient:    { select: { id: true, name: true } },
         },
       },

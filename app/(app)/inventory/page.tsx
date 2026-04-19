@@ -7,6 +7,8 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useT } from "@/lib/i18n/context"
+import { parseJsonArray } from "@/lib/calculations"
+import { TagBadges } from "@/components/ui/tag-badges"
 
 interface InventoryItem {
   patientMedicationId: string
@@ -21,6 +23,7 @@ interface InventoryItem {
   daysRemaining:       number
   stockStatus:         "ok" | "low" | "critical"
   lowStockThreshold:   number
+  medicationTags:      string   // JSON array string
 }
 
 const STATUS_CONFIG = {
@@ -223,78 +226,157 @@ export default function InventoryPage() {
         </div>
       ) : (
         <div className="dashboard-surface overflow-hidden">
-          <div className="overflow-x-auto" dir={dir}>
-          {/* Table header */}
-          <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] items-center gap-4 border-b border-slate-100 bg-slate-50/80 px-6 py-3">
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">{t.inventory.patientMed}</p>
-            <p className={`text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 w-20 ${dir === "rtl" ? "text-left" : "text-right"}`}>{t.inventory.inStock}</p>
-            <p className={`text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 w-16 ${dir === "rtl" ? "text-left" : "text-right"}`}>{t.inventory.avgDay}</p>
-            <p className={`text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 w-16 ${dir === "rtl" ? "text-left" : "text-right"}`}>{t.inventory.daysLeft}</p>
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 text-center w-24">{t.common.status}</p>
-            <p className="w-24" />
-          </div>
 
-          <div className="divide-y divide-slate-100">
+          {/* ── Mobile cards (< md) ── */}
+          <div className="divide-y divide-slate-100 md:hidden" dir={dir}>
             {sorted.map(item => {
-              const cfg = STATUS_CONFIG[item.stockStatus]
-              const Icon = cfg.icon
+              const cfg      = STATUS_CONFIG[item.stockStatus]
+              const Icon     = cfg.icon
               const daysLeft = item.daysRemaining >= 999 ? "∞" : item.daysRemaining
-              const pct = Math.min(100, item.lowStockThreshold > 0
+              const pct      = Math.min(100, item.lowStockThreshold > 0
                 ? Math.round((item.pillsInStock / (item.lowStockThreshold * 3)) * 100)
                 : 100)
+              const tags = parseJsonArray<string>(item.medicationTags, [])
+              const statusLabel = { critical: t.inventory.criticalLabel, low: t.inventory.lowStockLabel, ok: t.inventory.inStockLabel }[item.stockStatus]
 
               return (
                 <div key={item.patientMedicationId}
-                  className={`group grid grid-cols-[1fr_auto_auto_auto_auto_auto] items-center gap-4 px-6 py-4 transition-colors hover:bg-slate-50/60
-                    ${item.stockStatus === "critical" ? "bg-red-50/40" : item.stockStatus === "low" ? "bg-amber-50/30" : ""}`}>
+                  className={`px-4 py-3.5 ${item.stockStatus === "critical" ? "bg-red-50/40" : item.stockStatus === "low" ? "bg-amber-50/30" : ""}`}>
 
-                  {/* Name */}
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${cfg.bg}`}>
-                      <Icon className={`h-4 w-4 ${cfg.accent}`} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-900">
-                        {item.medicationName}
-                        {item.medicationStrength && <span className="ml-1.5 text-xs font-normal text-slate-400">({item.medicationStrength})</span>}
-                      </p>
-                      <p className="text-xs text-slate-500">{item.patientName}</p>
-                      {/* Stock bar */}
-                      <div className="mt-1.5 h-1 w-32 overflow-hidden rounded-full bg-slate-100">
-                        <div className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${cfg.gradient}`}
-                          style={{ width: `${pct}%` }} />
+                  {/* Row 1: icon + name + status badge */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${cfg.bg}`}>
+                        <Icon className={`h-4 w-4 ${cfg.accent}`} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-900">
+                          {item.medicationName}
+                          {item.medicationStrength && <span className="ml-1 text-xs font-normal text-slate-400">({item.medicationStrength})</span>}
+                        </p>
+                        <p className="text-xs text-slate-500">{item.patientName}</p>
                       </div>
                     </div>
-                  </div>
-
-                  {/* In Stock */}
-                  <p className={`w-20 text-sm font-bold text-slate-900 ${dir === "rtl" ? "text-left" : "text-right"}`}>{item.pillsInStock}</p>
-
-                  {/* Avg/Day */}
-                  <p className={`w-16 text-sm text-slate-500 ${dir === "rtl" ? "text-left" : "text-right"}`}>{item.avgDailyPills}</p>
-
-                  {/* Days Left */}
-                  <p className={`w-16 text-sm font-bold ${cfg.accent} ${dir === "rtl" ? "text-left" : "text-right"}`}>{daysLeft}</p>
-
-                  {/* Status badge */}
-                  <div className="w-24 flex justify-center">
-                    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold whitespace-nowrap ${cfg.badge}`}>
-                      <Icon className="h-3 w-3" />
-                      {{ critical: t.inventory.criticalLabel, low: t.inventory.lowStockLabel, ok: t.inventory.inStockLabel }[item.stockStatus]}
+                    <span className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold whitespace-nowrap ${cfg.badge}`}>
+                      <Icon className="h-3 w-3" />{statusLabel}
                     </span>
                   </div>
 
-                  {/* Restock button */}
-                  <div className="w-24 flex justify-end">
+                  {/* Tags */}
+                  {tags.length > 0 && (
+                    <TagBadges tags={tags} labels={t.tagLabels as Record<string, string>} className="mt-2" />
+                  )}
+
+                  {/* Stats + restock */}
+                  <div className="mt-2.5 flex items-center gap-3">
+                    <div className="text-center">
+                      <p className="text-base font-bold leading-none text-slate-900">{item.pillsInStock}</p>
+                      <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t.inventory.inStock}</p>
+                    </div>
+                    <div className="h-7 w-px bg-slate-100" />
+                    <div className="text-center">
+                      <p className={`text-base font-bold leading-none ${cfg.accent}`}>{daysLeft}</p>
+                      <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t.inventory.daysLeft}</p>
+                    </div>
+                    <div className="h-7 w-px bg-slate-100" />
+                    <div className="text-center">
+                      <p className="text-sm font-medium leading-none text-slate-500">{item.avgDailyPills}</p>
+                      <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t.inventory.avgDay}</p>
+                    </div>
+                    <div className="flex-1" />
                     <button onClick={() => setRestocking(item)}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 shadow-sm transition-all hover:-translate-y-px hover:border-emerald-300 hover:text-emerald-700 hover:shadow-md whitespace-nowrap">
-                      <Plus className="h-3 w-3" /> {t.inventory.restock}
+                      className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm active:bg-slate-50">
+                      <Plus className="h-3 w-3" />{t.inventory.restock}
                     </button>
+                  </div>
+
+                  {/* Stock bar */}
+                  <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                    <div className={`h-full rounded-full bg-gradient-to-r ${cfg.gradient}`} style={{ width: `${pct}%` }} />
                   </div>
                 </div>
               )
             })}
           </div>
+
+          {/* ── Desktop table (md+) ── */}
+          <div className="hidden md:block overflow-x-auto" dir={dir}>
+            {/* Table header */}
+            <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] items-center gap-4 border-b border-slate-100 bg-slate-50/80 px-6 py-3">
+              <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">{t.inventory.patientMed}</p>
+              <p className={`text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 w-20 ${dir === "rtl" ? "text-left" : "text-right"}`}>{t.inventory.inStock}</p>
+              <p className={`text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 w-16 ${dir === "rtl" ? "text-left" : "text-right"}`}>{t.inventory.avgDay}</p>
+              <p className={`text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 w-16 ${dir === "rtl" ? "text-left" : "text-right"}`}>{t.inventory.daysLeft}</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 text-center w-24">{t.common.status}</p>
+              <p className="w-24" />
+            </div>
+
+            <div className="divide-y divide-slate-100">
+              {sorted.map(item => {
+                const cfg      = STATUS_CONFIG[item.stockStatus]
+                const Icon     = cfg.icon
+                const daysLeft = item.daysRemaining >= 999 ? "∞" : item.daysRemaining
+                const pct      = Math.min(100, item.lowStockThreshold > 0
+                  ? Math.round((item.pillsInStock / (item.lowStockThreshold * 3)) * 100)
+                  : 100)
+
+                return (
+                  <div key={item.patientMedicationId}
+                    className={`group grid grid-cols-[1fr_auto_auto_auto_auto_auto] items-center gap-4 px-6 py-4 transition-colors hover:bg-slate-50/60
+                      ${item.stockStatus === "critical" ? "bg-red-50/40" : item.stockStatus === "low" ? "bg-amber-50/30" : ""}`}>
+
+                    {/* Name */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${cfg.bg}`}>
+                        <Icon className={`h-4 w-4 ${cfg.accent}`} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-900">
+                          {item.medicationName}
+                          {item.medicationStrength && <span className="ml-1.5 text-xs font-normal text-slate-400">({item.medicationStrength})</span>}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="text-xs text-slate-500">{item.patientName}</span>
+                          <TagBadges
+                            tags={parseJsonArray<string>(item.medicationTags, [])}
+                            labels={t.tagLabels as Record<string, string>}
+                          />
+                        </div>
+                        <div className="mt-1.5 h-1 w-32 overflow-hidden rounded-full bg-slate-100">
+                          <div className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${cfg.gradient}`}
+                            style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* In Stock */}
+                    <p className={`w-20 text-sm font-bold text-slate-900 ${dir === "rtl" ? "text-left" : "text-right"}`}>{item.pillsInStock}</p>
+
+                    {/* Avg/Day */}
+                    <p className={`w-16 text-sm text-slate-500 ${dir === "rtl" ? "text-left" : "text-right"}`}>{item.avgDailyPills}</p>
+
+                    {/* Days Left */}
+                    <p className={`w-16 text-sm font-bold ${cfg.accent} ${dir === "rtl" ? "text-left" : "text-right"}`}>{daysLeft}</p>
+
+                    {/* Status badge */}
+                    <div className="w-24 flex justify-center">
+                      <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold whitespace-nowrap ${cfg.badge}`}>
+                        <Icon className="h-3 w-3" />
+                        {{ critical: t.inventory.criticalLabel, low: t.inventory.lowStockLabel, ok: t.inventory.inStockLabel }[item.stockStatus]}
+                      </span>
+                    </div>
+
+                    {/* Restock button */}
+                    <div className="w-24 flex justify-end">
+                      <button onClick={() => setRestocking(item)}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 shadow-sm transition-all hover:-translate-y-px hover:border-emerald-300 hover:text-emerald-700 hover:shadow-md whitespace-nowrap">
+                        <Plus className="h-3 w-3" /> {t.inventory.restock}
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
       )}
