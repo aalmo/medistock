@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Search, Pill, Wind, Droplets, Syringe, Zap, Package, FlaskConical, Users, Clock, Trash2, Camera } from "lucide-react"
+import { Search, Pill, Wind, Droplets, Syringe, Zap, Package, FlaskConical, Users, Clock, Trash2, Camera, Heart, Activity, Brain, Sun, Moon, Leaf, Flame, Shield } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { parseJsonArray } from "@/lib/calculations"
 import { useToast } from "@/hooks/use-toast"
@@ -19,6 +19,30 @@ const UNIT_THEME: Record<string, {
   patch:       { gradient: "from-amber-500 to-orange-500",   iconBg: "bg-amber-100",  iconColor: "text-amber-600",  icon: Zap },
   injection:   { gradient: "from-rose-500 to-pink-600",      iconBg: "bg-rose-100",   iconColor: "text-rose-600",   icon: Syringe },
   other:       { gradient: "from-slate-500 to-gray-600",     iconBg: "bg-slate-100",  iconColor: "text-slate-600",  icon: Package },
+}
+
+// ── Category tag theme map ─────────────────────────────────────────────────
+const TAG_THEME: Record<string, { icon: React.ElementType; bg: string; text: string; border: string }> = {
+  "Blood Pressure":       { icon: Heart,        bg: "bg-rose-50",    text: "text-rose-600",   border: "border-rose-200" },
+  "Cardiac":              { icon: Heart,        bg: "bg-red-50",     text: "text-red-600",    border: "border-red-200" },
+  "Diabetes":             { icon: Droplets,     bg: "bg-amber-50",   text: "text-amber-600",  border: "border-amber-200" },
+  "Pain Relief":          { icon: Zap,          bg: "bg-orange-50",  text: "text-orange-600", border: "border-orange-200" },
+  "Antibiotic":           { icon: FlaskConical, bg: "bg-green-50",   text: "text-green-600",  border: "border-green-200" },
+  "Anti-inflammatory":    { icon: Flame,        bg: "bg-orange-50",  text: "text-orange-600", border: "border-orange-200" },
+  "Cholesterol":          { icon: Activity,     bg: "bg-yellow-50",  text: "text-yellow-700", border: "border-yellow-200" },
+  "Thyroid":              { icon: Activity,     bg: "bg-teal-50",    text: "text-teal-600",   border: "border-teal-200" },
+  "Asthma":               { icon: Wind,         bg: "bg-sky-50",     text: "text-sky-600",    border: "border-sky-200" },
+  "Anticoagulant":        { icon: Droplets,     bg: "bg-red-50",     text: "text-red-600",    border: "border-red-200" },
+  "Antidepressant":       { icon: Brain,        bg: "bg-purple-50",  text: "text-purple-600", border: "border-purple-200" },
+  "Anxiety":              { icon: Brain,        bg: "bg-violet-50",  text: "text-violet-600", border: "border-violet-200" },
+  "Epilepsy":             { icon: Zap,          bg: "bg-indigo-50",  text: "text-indigo-600", border: "border-indigo-200" },
+  "Osteoporosis":         { icon: Shield,       bg: "bg-stone-50",   text: "text-stone-600",  border: "border-stone-200" },
+  "Vitamin / Supplement": { icon: Sun,          bg: "bg-lime-50",    text: "text-lime-600",   border: "border-lime-200" },
+  "Allergy":              { icon: Leaf,         bg: "bg-amber-50",   text: "text-amber-600",  border: "border-amber-200" },
+  "Gastric / Acid Reflux":{ icon: FlaskConical, bg: "bg-orange-50",  text: "text-orange-600", border: "border-orange-200" },
+  "Sleep":                { icon: Moon,         bg: "bg-indigo-50",  text: "text-indigo-600", border: "border-indigo-200" },
+  "Blood Thinner":        { icon: Droplets,     bg: "bg-rose-50",    text: "text-rose-600",   border: "border-rose-200" },
+  "Immunosuppressant":    { icon: Shield,       bg: "bg-blue-50",    text: "text-blue-600",   border: "border-blue-200" },
 }
 
 // derive a consistent theme from the medication's own form/unit field
@@ -289,41 +313,40 @@ export default function MedicationsPage() {
                 {/* ── Gradient top stripe ── */}
                 <div className={`h-1.5 w-full bg-gradient-to-r ${theme.gradient}`} />
 
-                <div className="space-y-3 p-5">
+                <div className="space-y-2.5 p-4">
 
-                  {/* ── Row 1: icon + name + image thumbnail top-right ── */}
+                  {/* ── Row 1: icon + name + compact square image ── */}
                   <div className="flex items-start gap-3">
 
-                    {/* Icon */}
+                    {/* Form icon */}
                     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${theme.iconBg}`}>
                       <Icon className={`h-4 w-4 ${theme.iconColor}`} />
                     </div>
 
                     {/* Name block */}
                     <div className="min-w-0 flex-1">
-                      <h3 className="truncate pr-2 text-base font-semibold leading-tight text-slate-900">
+                      <h3 className="truncate text-sm font-semibold leading-tight text-slate-900">
                         {headline}
-                        {strength && (
-                          <span className="ml-1.5 text-sm font-medium text-slate-500">({strength})</span>
-                        )}
                       </h3>
                       {subGeneric && (
-                        <p className="mt-0.5 truncate text-xs italic text-slate-500">{subGeneric}</p>
+                        <p className="mt-0.5 truncate text-xs italic text-slate-400">{subGeneric}</p>
                       )}
-                      {form && (
-                        <span className="mt-1 inline-block rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">
-                          {form}
-                        </span>
-                      )}
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {strength && (
+                          <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500">{strength}</span>
+                        )}
+                        {form && (
+                          <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">{form}</span>
+                        )}
+                      </div>
                     </div>
 
-                    {/* ── Horizontal image thumbnail (top-right) ── */}
-                    <div className="group relative -mr-5 -mt-5 shrink-0">
+                    {/* Compact square image thumbnail */}
+                    <div className="group relative shrink-0">
                       {med.imageUrl ? (
                         <>
-                          {/* Thumbnail: flush to top-right of card, no border, blends in */}
                           <div
-                            className="h-28 w-48 cursor-zoom-in overflow-hidden rounded-bl-2xl"
+                            className="h-14 w-14 cursor-zoom-in overflow-hidden rounded-xl border border-slate-100 bg-slate-50"
                             onClick={() => setZoomedImage({ url: med.imageUrl!, name: headline })}
                             title="Click to enlarge"
                           >
@@ -334,85 +357,83 @@ export default function MedicationsPage() {
                               className="h-full w-full object-contain transition-transform duration-200 group-hover:scale-105"
                             />
                           </div>
-                          {/* Camera button to change photo */}
                           <button
                             onClick={e => { e.stopPropagation(); triggerUpload(med.id) }}
-                            className="absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 opacity-0 shadow transition-opacity group-hover:opacity-100 hover:bg-black/80"
+                            className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 opacity-0 shadow transition-opacity group-hover:opacity-100 hover:bg-black/80"
                             title="Change photo"
                           >
                             {uploading === med.id
-                              ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                              : <Camera className="h-3 w-3 text-white" />
+                              ? <span className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                              : <Camera className="h-2.5 w-2.5 text-white" />
                             }
                           </button>
                         </>
                       ) : (
-                        /* No image — dashed placeholder, flush to card top-right */
                         <button
                           onClick={() => triggerUpload(med.id)}
-                          className="group/up flex h-28 w-48 flex-col items-center justify-center gap-1.5 rounded-bl-2xl border-b border-l border-dashed border-slate-200 bg-slate-50/60 transition-colors hover:border-slate-300 hover:bg-slate-100"
+                          className="group/up flex h-14 w-14 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 transition-colors hover:border-slate-300 hover:bg-slate-100"
                           title="Upload photo"
                         >
                           {uploading === med.id
-                            ? <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
-                            : <>
-                                <Camera className="h-5 w-5 text-slate-300 transition-colors group-hover/up:text-slate-400" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-300 transition-colors group-hover/up:text-slate-400">{t.medications.addPhoto}</span>
-                              </>
+                            ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
+                            : <Camera className="h-4 w-4 text-slate-300 transition-colors group-hover/up:text-slate-400" />
                           }
                         </button>
                       )}
                     </div>
                   </div>
 
-                  {/* Tags */}
+                  {/* ── Category tags — color-coded with icons ── */}
                   {(() => {
                     const tagList: string[] = typeof med.tags === "string"
                       ? parseJsonArray<string>(med.tags, [])
                       : []
                     return tagList.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {tagList.map(tag => (
-                          <button
-                            key={tag}
-                            onClick={() => setActiveTag(prev => prev === tag ? null : tag)}
-                            className={`rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors ${
-                              activeTag === tag
-                                ? "border-blue-400 bg-blue-100 text-blue-700"
-                                : "border-blue-100 bg-blue-50 text-blue-600 hover:border-blue-300"
-                            }`}
-                          >
-                            {(t.tagLabels as Record<string, string>)[tag] ?? tag}
-                          </button>
-                        ))}
+                      <div className="flex flex-wrap gap-1.5">
+                        {tagList.map(tag => {
+                          const tt = TAG_THEME[tag] ?? { icon: Package, bg: "bg-slate-50", text: "text-slate-600", border: "border-slate-200" }
+                          const TagIcon = tt.icon
+                          return (
+                            <button
+                              key={tag}
+                              onClick={() => setActiveTag(prev => prev === tag ? null : tag)}
+                              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold transition-all ${tt.bg} ${tt.text} ${tt.border} ${activeTag === tag ? "ring-1 ring-offset-1 ring-current shadow-sm" : "hover:brightness-95"}`}
+                            >
+                              <TagIcon className="h-2.5 w-2.5" />
+                              {(t.tagLabels as Record<string, string>)[tag] ?? tag}
+                            </button>
+                          )
+                        })}
                       </div>
                     ) : null
                   })()}
 
-                  {/* Dosage chip */}
-                  {doseLine && (
-                    <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${theme.iconBg} ${theme.iconColor}`}>
-                      <Icon className="h-3 w-3" />
-                      {doseLine}
-                    </div>
-                  )}
-
-                  {/* Schedule times */}
-                  {times.length > 0 && (
+                  {/* ── Dose + schedule in one compact row ── */}
+                  {(doseLine || times.length > 0) && (
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">
-                        <Clock className="h-3 w-3" />
-                        {tFrequencyLabel(t, times.length)}
-                      </span>
-                      {times.map((t, i) => (
-                        <span key={i} className={`rounded-md px-2 py-0.5 font-mono text-[11px] ${theme.iconBg} ${theme.iconColor}`}>
-                          {t}
-                        </span>
-                      ))}
+                      {doseLine && (
+                        <div className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${theme.iconBg} ${theme.iconColor}`}>
+                          <Icon className="h-3 w-3" />
+                          {doseLine}
+                        </div>
+                      )}
+                      {times.length > 0 && (
+                        <>
+                          <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">
+                            <Clock className="h-3 w-3" />
+                            {tFrequencyLabel(t, times.length)}
+                          </span>
+                          {times.map((time, i) => (
+                            <span key={i} className={`rounded-md px-2 py-0.5 font-mono text-[11px] ${theme.iconBg} ${theme.iconColor}`}>
+                              {time}
+                            </span>
+                          ))}
+                        </>
+                      )}
                     </div>
                   )}
 
-                  {/* Divider + meta */}
+                  {/* ── Footer: patients + actions ── */}
                   <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2">
                     <span className="inline-flex items-center gap-1.5 text-xs text-slate-500">
                       <Users className="h-3.5 w-3.5" />
@@ -444,21 +465,6 @@ export default function MedicationsPage() {
                       )}
                     </div>
                   </div>
-
-                  {/* Ingredients */}
-                  {med.ingredients && (
-                    <p className="line-clamp-2 text-[11px] leading-relaxed text-slate-500">
-                      <span className="font-medium text-slate-700">{t.medications.activeIngredients}: </span>
-                      {med.ingredients}
-                    </p>
-                  )}
-
-                  {/* Warnings */}
-                  {med.warnings && (
-                    <div className="line-clamp-2 rounded-lg border border-amber-100 bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-700">
-                      ⚠️ {med.warnings}
-                    </div>
-                  )}
                 </div>
               </div>
             )

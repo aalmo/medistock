@@ -37,10 +37,10 @@ function getExpStatus(expiryDate: string, alertDays = 30) {
   const exp  = new Date(expiryDate)
   const now  = new Date()
   const days = differenceInDays(exp, now)
-  if (isPast(exp))                               return { key: "expired",  label: "Expired",  days, color: "#ef4444", bg: "bg-red-50",    border: "border-red-200",    badge: "bg-red-500 text-white",   icon: ShieldAlert }
-  if (days <= 7)                                 return { key: "critical", label: "Critical", days, color: "#ef4444", bg: "bg-red-50",    border: "border-red-200",    badge: "bg-red-500 text-white",   icon: Clock4 }
-  if (days <= alertDays)                         return { key: "warning",  label: "Warning",  days, color: "#f59e0b", bg: "bg-amber-50",  border: "border-amber-200",  badge: "bg-amber-400 text-white", icon: Timer }
-  return                                                { key: "good",    label: "Good",     days, color: "#10b981", bg: "bg-emerald-50",border: "border-emerald-200",badge: "bg-emerald-500 text-white",icon: ShieldCheck }
+  if (isPast(exp))    return { key: "expired",  days, color: "#ef4444", bg: "bg-red-50",    border: "border-red-200",    badge: "bg-red-500 text-white",    icon: ShieldAlert }
+  if (days <= 7)      return { key: "critical", days, color: "#ef4444", bg: "bg-red-50",    border: "border-red-200",    badge: "bg-red-500 text-white",    icon: Clock4 }
+  if (days <= alertDays) return { key: "warning", days, color: "#f59e0b", bg: "bg-amber-50",border: "border-amber-200",  badge: "bg-amber-400 text-white",  icon: Timer }
+  return                     { key: "good",    days, color: "#10b981", bg: "bg-emerald-50",border: "border-emerald-200", badge: "bg-emerald-500 text-white", icon: ShieldCheck }
 }
 
 // ── Add/Edit modal ────────────────────────────────────────────────────────
@@ -59,7 +59,7 @@ function PackageModal({
   editPkg?: MedPackage | null
   patientMeds: PatientMed[]
 }) {
-  const { t } = useT()
+  const { t, dir } = useT()
   const [form, setForm] = useState({
     patientMedicationId: editPkg?.patientMedicationId ?? (patientMeds[0]?.id ?? ""),
     expiryDate:          editPkg ? format(new Date(editPkg.expiryDate), "yyyy-MM-dd") : "",
@@ -95,7 +95,7 @@ function PackageModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/35 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_26px_60px_-28px_rgba(15,23,42,0.55)]">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_26px_60px_-28px_rgba(15,23,42,0.55)]" dir={dir}>
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
           <div className="flex items-center gap-2">
@@ -213,7 +213,13 @@ export default function PackagesPage() {
   const [expandedPm,  setExpandedPm]  = useState<string | null>(null)
   const [alertDays,   setAlertDays]   = useState(30)
   const [deleting,    setDeleting]    = useState<string | null>(null)
-  const { t, locale } = useT()
+  const { t, locale, dir } = useT()
+  const statusLabels: Record<string, string> = {
+    expired:  t.packages.expired,
+    critical: t.packages.criticalLabel,
+    warning:  t.packages.warningLabel,
+    good:     t.packages.goodLabel,
+  }
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -286,7 +292,7 @@ export default function PackagesPage() {
     .sort((a,b) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime())[0]
 
   return (
-    <div className="relative w-full space-y-5 pb-3">
+    <div className="relative w-full space-y-5 pb-3" dir={dir}>
       <div className="pointer-events-none absolute inset-x-0 -top-8 -z-10 h-44 rounded-3xl bg-gradient-to-r from-violet-100/40 via-indigo-100/40 to-sky-100/40 blur-2xl" />
 
       {/* ── Header ── */}
@@ -339,8 +345,8 @@ export default function PackagesPage() {
             </span>
             <div className="flex-1">
               <p className="text-sm font-semibold text-slate-900">
-                {pat.name}&apos;s {med.brandName ?? med.name}{med.strength ? ` (${med.strength})` : ""}
-                {nextExpiry.lotNumber ? <span className="font-normal text-slate-500"> · Lot {nextExpiry.lotNumber}</span> : ""}
+                {pat.name} — {med.brandName ?? med.name}{med.strength ? ` (${med.strength})` : ""}
+                {nextExpiry.lotNumber ? <span className="font-normal text-slate-500"> · {t.packages.lotLabel} {nextExpiry.lotNumber}</span> : ""}
               </p>
               <p className="mt-0.5 text-xs font-medium" style={{ color: s.color }}>
                 {s.key === "expired"
@@ -400,13 +406,13 @@ export default function PackagesPage() {
                   <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${ws.bg} shadow-sm`}>
                     <ws.icon className="h-5 w-5" style={{ color: ws.color }} />
                   </div>
-                  <div className="flex-1 text-left">
+                  <div className="flex-1 text-start">
                     <p className="text-sm font-semibold text-slate-900">{group.label}</p>
-                    <p className="mt-0.5 text-xs text-slate-500">{group.items.length} package{group.items.length !== 1 ? "s" : ""}</p>
+                    <p className="mt-0.5 text-xs text-slate-500">{group.items.length} {group.items.length !== 1 ? t.packages.packages : t.packages.package}</p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${ws.badge}`}>
-                      {ws.label}
+                      {statusLabels[ws.key]}
                     </span>
                     {isExpanded ? <ChevronUp className="h-4 w-4 text-slate-400"/> : <ChevronDown className="h-4 w-4 text-slate-400"/>}
                   </div>
@@ -436,7 +442,7 @@ export default function PackagesPage() {
                             {/* Info */}
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${s.badge}`}>{s.label}</span>
+                                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${s.badge}`}>{statusLabels[s.key]}</span>
                                 {pkg.opened && <span className="rounded-full bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700">{t.packages.openedLabel}</span>}
                                 {pkg.lotNumber && <span className="font-mono text-[10px] text-slate-500">{t.packages.lotLabel}: {pkg.lotNumber}</span>}
                               </div>

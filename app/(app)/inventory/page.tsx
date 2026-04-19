@@ -279,7 +279,8 @@ export default function InventoryPage() {
                   {/* Status badge */}
                   <div className="w-24 flex justify-center">
                     <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold whitespace-nowrap ${cfg.badge}`}>
-                      <Icon className="h-3 w-3" />{cfg.label}
+                      <Icon className="h-3 w-3" />
+                      {{ critical: t.inventory.criticalLabel, low: t.inventory.lowStockLabel, ok: t.inventory.inStockLabel }[item.stockStatus]}
                     </span>
                   </div>
 
