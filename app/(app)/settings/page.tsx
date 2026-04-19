@@ -4,7 +4,8 @@ import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import {
   Mail, Bell, Globe, User, Save, CheckCircle2,
-  Send, Database, ShieldCheck, Settings2, ShieldAlert, TrendingDown, ShieldOff
+  Send, Database, ShieldCheck, Settings2, ShieldAlert, TrendingDown, ShieldOff,
+  Zap, CalendarDays, CalendarRange,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useT } from "@/lib/i18n/context"
@@ -21,9 +22,10 @@ interface UserSettings {
   email:           string
   timezone:        string
   language:        string // NEW: default language
-  emailNotifs:     boolean
-  emailAlertLevel: string
-  lowStockDays:    number
+  emailNotifs:      boolean
+  emailAlertLevel:  string
+  emailDigestFreq:  string
+  lowStockDays:     number
   expiryAlertDays: number
   drugDatabase:    string
 }
@@ -79,7 +81,8 @@ export default function SettingsPage() {
   const { t, setLocale } = useT()
   const [settings, setSettings] = useState<UserSettings>({
     name: "", email: "", timezone: "UTC", language: "en",
-    emailNotifs: true, emailAlertLevel: "low", lowStockDays: 7, expiryAlertDays: 30,
+    emailNotifs: true, emailAlertLevel: "low", emailDigestFreq: "daily",
+    lowStockDays: 7, expiryAlertDays: 30,
     drugDatabase: "us",
   })
   const [saving,      setSaving]      = useState(false)
@@ -263,6 +266,31 @@ export default function SettingsPage() {
                           <opt.icon className="h-5 w-5 text-white" />
                         </div>
                         <div className={`text-[11px] font-bold leading-tight ${active ? opt.text : "text-slate-700"}`}>{opt.label}</div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </Field>
+
+              <Field label={t.settings.emailDigestFreq} hint={t.settings.emailDigestFreqHint}>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { value: "realtime", label: t.settings.digestRealtime, desc: t.settings.digestRealtimeDesc, icon: Zap,          gradient: "from-emerald-400 to-teal-500",   ring: "ring-emerald-200", bg: "bg-emerald-50",  text: "text-emerald-700" },
+                    { value: "daily",    label: t.settings.digestDaily,    desc: t.settings.digestDailyDesc,    icon: CalendarDays,  gradient: "from-blue-500 to-indigo-600",    ring: "ring-blue-200",    bg: "bg-blue-50",     text: "text-blue-700"    },
+                    { value: "weekly",   label: t.settings.digestWeekly,   desc: t.settings.digestWeeklyDesc,   icon: CalendarRange, gradient: "from-violet-500 to-purple-600",  ring: "ring-violet-200",  bg: "bg-violet-50",   text: "text-violet-700"  },
+                  ].map(opt => {
+                    const active = settings.emailDigestFreq === opt.value
+                    return (
+                      <button key={opt.value} onClick={() => update("emailDigestFreq", opt.value)}
+                        className={`flex flex-col items-center gap-2.5 rounded-xl border-2 p-4 text-center transition-all hover:-translate-y-px
+                          ${active ? `border-transparent ${opt.bg} shadow-sm ring-2 ${opt.ring}` : "border-slate-100 bg-white hover:border-slate-200"}`}>
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br ${opt.gradient} shadow-[0_6px_16px_-8px_rgba(15,23,42,0.45)]`}>
+                          <opt.icon className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <div className={`text-[11px] font-bold leading-tight ${active ? opt.text : "text-slate-700"}`}>{opt.label}</div>
+                          <div className="mt-0.5 text-[10px] text-slate-400 leading-tight">{opt.desc}</div>
+                        </div>
                       </button>
                     )
                   })}

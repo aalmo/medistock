@@ -21,6 +21,7 @@ model User {
   language      String    @default("en") // NEW: default language
   emailNotifs      Boolean   @default(true)
   emailAlertLevel  String    @default("low")
+  emailDigestFreq  String    @default("daily")  // "realtime" | "daily" | "weekly"
   lowStockDays     Int       @default(7)
   expiryAlertDays  Int       @default(30)   // alert when expiry within this many days
   drugDatabase     String    @default("us") // "us" = RxNorm/openFDA, "eu" = EMA/SPOR

@@ -10,6 +10,7 @@ const settingsSchema = z.object({
   language:         z.string().optional(), // NEW: default language
   emailNotifs:      z.boolean().optional(),
   emailAlertLevel:  z.enum(["off", "low", "critical"]).optional(),
+  emailDigestFreq:  z.enum(["realtime", "daily", "weekly"]).optional(),
   lowStockDays:     z.number().int().min(1).max(90).optional(),
   expiryAlertDays:  z.number().int().min(1).max(365).optional(),
   drugDatabase:     z.enum(["us", "eu"]).optional(),
@@ -17,7 +18,7 @@ const settingsSchema = z.object({
 
 const USER_SELECT = {
   name: true, email: true, timezone: true, language: true,
-  emailNotifs: true, emailAlertLevel: true,
+  emailNotifs: true, emailAlertLevel: true, emailDigestFreq: true,
   lowStockDays: true, expiryAlertDays: true,
   drugDatabase: true,
 }

@@ -330,6 +330,14 @@ export interface Translation {
     urgent:               string
     early:                string
     months6:              string
+    emailDigestFreq:      string
+    emailDigestFreqHint:  string
+    digestRealtime:       string
+    digestRealtimeDesc:   string
+    digestDaily:          string
+    digestDailyDesc:      string
+    digestWeekly:         string
+    digestWeeklyDesc:     string
     drugDatabase:         string
     drugDatabaseSubtitle: string
     usDatabase:           string

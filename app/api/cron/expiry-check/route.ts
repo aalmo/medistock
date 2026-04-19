@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 async function runExpiryCheck() {
   const now   = new Date()
   const users = await prisma.user.findMany({
-    select: { id: true, email: true, name: true, emailNotifs: true, emailAlertLevel: true, expiryAlertDays: true, language: true },
+    select: { id: true, email: true, name: true, emailNotifs: true, emailAlertLevel: true, emailDigestFreq: true, expiryAlertDays: true, language: true },
   })
 
   let inAppCreated = 0
@@ -73,10 +73,19 @@ async function runExpiryCheck() {
       }
     }
 
-    // Email — once per day per user
+    // Email — gated by digest frequency preference
     if (user.emailNotifs && user.emailAlertLevel !== "off") {
-      const alreadyEmailed = await prisma.notification.findFirst({
-        where: { userId: user.id, type: "EXPIRY_ALERT", channel: "EMAIL", createdAt: { gte: todayStart } },
+      const alreadyEmailed = user.emailDigestFreq === "realtime" ? null : await prisma.notification.findFirst({
+        where: {
+          userId:    user.id,
+          type:      "EXPIRY_ALERT",
+          channel:   "EMAIL",
+          createdAt: {
+            gte: user.emailDigestFreq === "weekly"
+              ? new Date(now.getTime() - 7 * 86_400_000)
+              : todayStart, // daily
+          },
+        },
       })
       if (!alreadyEmailed) {
         const byPatient = new Map<string, typeof packages>()
