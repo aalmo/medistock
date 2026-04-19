@@ -2,13 +2,16 @@ import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 import { authOptions } from "@/lib/auth"
 import Image from "next/image"
+import { Cairo } from "next/font/google"
+
+const cairo = Cairo({ subsets: ["latin", "arabic"], weight: ["400", "600", "700"], display: "swap" })
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions)
   if (session) redirect("/dashboard")
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center p-4">
+    <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center p-4 ${cairo.className}`}>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Image src="/logo.svg" alt="MediStock Logo" width={260} height={80} className="mx-auto" priority />

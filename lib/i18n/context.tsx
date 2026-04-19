@@ -92,3 +92,45 @@ export function tFrequencyLabel(t: Translation, timesPerDay: number): string {
   }
 }
 
+/** Format date with locale support */
+export function formatDateLocale(date: Date | string | null | undefined, locale: Locale = "en"): string {
+  if (!date) return 'N/A'
+  const d = typeof date === 'string' ? new Date(date) : date
+
+  // Use explicit Gregorian calendar for Arabic to avoid Hijri
+  const localeMap: Record<Locale, string> = {
+    en: 'en-US',
+    de: 'de-DE',
+    ar: 'ar-SA-u-ca-gregory'  // Gregorian calendar with Arabic language
+  }
+
+  return d.toLocaleDateString(localeMap[locale], {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    calendar: 'gregory'  // Explicitly use Gregorian calendar
+  })
+}
+
+/** Format date and time with locale support */
+export function formatDateTimeLocale(date: Date | string | null | undefined, locale: Locale = "en"): string {
+  if (!date) return 'N/A'
+  const d = typeof date === 'string' ? new Date(date) : date
+
+  // Use explicit Gregorian calendar for Arabic to avoid Hijri
+  const localeMap: Record<Locale, string> = {
+    en: 'en-US',
+    de: 'de-DE',
+    ar: 'ar-SA-u-ca-gregory'  // Gregorian calendar with Arabic language
+  }
+
+  return d.toLocaleString(localeMap[locale], {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: locale !== 'de',
+    calendar: 'gregory'  // Explicitly use Gregorian calendar
+  })
+}

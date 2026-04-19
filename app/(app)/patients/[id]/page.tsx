@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getInitials, calculateAge, formatDate, formatDateTime } from "@/lib/utils"
+import { getInitials, calculateAge } from "@/lib/utils"
 import { calcAvgDailyPills, calcDaysRemaining, calcEffectiveStock, getStockStatus, parseJsonArray, containerLabel, computeContainersRemaining } from "@/lib/calculations"
 import { AddMedicationDialog } from "@/components/patients/AddMedicationDialog"
 import { EditMedicationDialog } from "@/components/patients/EditMedicationDialog"
 import { useToast } from "@/hooks/use-toast"
-import { useT, tUnitLabel, tFrequencyLabel } from "@/lib/i18n/context"
+import { useT, tUnitLabel, tFrequencyLabel, formatDateLocale, formatDateTimeLocale } from "@/lib/i18n/context"
 
 // ── Color palette per unit type ──────────────────────────────────────────────
 const UNIT_THEME: Record<string, {
@@ -42,7 +42,7 @@ const STATUS_CONFIG = {
 export default function PatientDetailPage() {
   const params = useParams()
   const { toast } = useToast()
-  const { t } = useT()
+  const { t, locale } = useT()
   const [patient, setPatient] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [addMedOpen, setAddMedOpen] = useState(false)
@@ -108,18 +108,18 @@ export default function PatientDetailPage() {
           <div>
             <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{patient.name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-2">
-              {age !== null && <span className="text-sm text-slate-500">Age {age}</span>}
+              {age !== null && <span className="text-sm text-slate-500">{t.patients.age} {age}</span>}
               {patient.gender && <Badge variant="outline" className="text-xs">{patient.gender.toLowerCase() === "male" ? t.patients.male : patient.gender.toLowerCase() === "female" ? t.patients.female : patient.gender}</Badge>}
-              {patient.dob && <span className="text-sm text-slate-500">- DOB: {formatDate(patient.dob)}</span>}
+              {patient.dob && <span className="text-sm text-slate-500">- {t.patients.dob}: {formatDateLocale(patient.dob, locale)}</span>}
             </div>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => setAddMedOpen(true)} className="rounded-xl border-slate-200 bg-white shadow-sm">
-            <Plus className="mr-2 h-4 w-4" /> Add Medication
+            <Plus className="mr-2 h-4 w-4" /> {t.patients.addMedication}
           </Button>
           <Link href={`/patients/${patient.id}/edit`}>
-            <Button variant="outline" className="rounded-xl border-slate-200 bg-white shadow-sm"><Edit className="mr-2 h-4 w-4" /> Edit</Button>
+            <Button variant="outline" className="rounded-xl border-slate-200 bg-white shadow-sm"><Edit className="mr-2 h-4 w-4" /> {t.patients.editPatient}</Button>
           </Link>
         </div>
       </div>
@@ -393,7 +393,7 @@ export default function PatientDetailPage() {
                           <p className="text-sm font-semibold text-slate-900">{pm.medication.name}
                             {pm.medication.strength && <span className="ml-1 font-normal text-slate-500">({pm.medication.strength})</span>}
                           </p>
-                          <p className="text-xs text-slate-500">{formatDateTime(log.scheduledAt)} - {sch.pillsPerDose} {tUnitLabel(t, unit, sch.pillsPerDose)}</p>
+                          <p className="text-xs text-slate-500">{formatDateTimeLocale(log.scheduledAt, locale)} - {sch.pillsPerDose} {tUnitLabel(t, unit, sch.pillsPerDose)}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
@@ -431,7 +431,7 @@ export default function PatientDetailPage() {
             pm.schedules.flatMap((sch: any) =>
               sch.doseLogs.map((log: any) => (
                 <div key={log.id} className="dashboard-surface flex items-center justify-between gap-3 px-4 py-3 text-sm">
-                  <span className="w-36 shrink-0 text-xs text-slate-500">{formatDateTime(log.scheduledAt)}</span>
+                  <span className="w-36 shrink-0 text-xs text-slate-500">{formatDateTimeLocale(log.scheduledAt, locale)}</span>
                   <span className="flex-1 truncate font-medium text-slate-900">{pm.medication.name}
                     {pm.medication.strength && <span className="ml-1 text-xs font-normal text-slate-500">({pm.medication.strength})</span>}
                   </span>

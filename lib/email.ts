@@ -137,31 +137,31 @@ export function buildLowStockEmail(data: LowStockEmailData, t: Translation): { s
         <tr><td style="padding:18px 20px;">
           <table cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
             <td>
-              <span style="font-size:17px;font-weight:800;color:#111827;">${displayName}${med.strength ? ` (${med.strength})` : ""}</span>
-              ${subName ? `<br/><span style="font-size:12px;color:#6b7280;">${subName}</span>` : ""}
+              <span style="font-size:17px;font-weight:800;color:#111827;font-family:'Cairo',sans-serif;">${displayName}${med.strength ? ` (${med.strength})` : ""}</span>
+              ${subName ? `<br/><span style="font-size:12px;color:#6b7280;font-family:'Cairo',sans-serif;">${subName}</span>` : ""}
             </td>
             <td align="right" valign="top">
-              <span style="background:${c.badge};color:${c.badgeText};font-size:11px;font-weight:800;padding:4px 10px;border-radius:99px;display:inline-block;">${c.icon} ${c.label}</span>
+              <span style="background:${c.badge};color:${c.badgeText};font-size:11px;font-weight:800;padding:4px 10px;border-radius:99px;display:inline-block;font-family:'Cairo',sans-serif;">${c.icon} ${c.label}</span>
             </td>
           </tr></table>
           <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:14px;"><tr>
             <td width="32%" style="text-align:center;padding:10px 6px;background:#fff;border-radius:10px;border:1px solid #e5e7eb;">
-              <div style="font-size:20px;font-weight:900;color:${barColor};">${med.pillsInStock % 1 === 0 ? med.pillsInStock : med.pillsInStock.toFixed(1)}</div>
-              <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;margin-top:2px;">${med.unitType}s left</div>
+              <div style="font-size:20px;font-weight:900;color:${barColor};font-family:'Cairo',sans-serif;">${med.pillsInStock % 1 === 0 ? med.pillsInStock : med.pillsInStock.toFixed(1)}</div>
+              <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;margin-top:2px;font-family:'Cairo',sans-serif;">${med.unitType}s left</div>
             </td>
             <td width="4%"></td>
             <td width="32%" style="text-align:center;padding:10px 6px;background:#fff;border-radius:10px;border:1px solid #e5e7eb;">
-              <div style="font-size:20px;font-weight:900;color:${med.daysLeft <= 3 ? "#ef4444" : med.daysLeft <= 7 ? "#f59e0b" : "#111827"};">${med.daysLeft}</div>
-              <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;margin-top:2px;">days left</div>
+              <div style="font-size:20px;font-weight:900;color:${med.daysLeft <= 3 ? "#ef4444" : med.daysLeft <= 7 ? "#f59e0b" : "#111827"};font-family:'Cairo',sans-serif;">${med.daysLeft}</div>
+              <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;margin-top:2px;font-family:'Cairo',sans-serif;">days left</div>
             </td>
             <td width="4%"></td>
             <td width="32%" style="text-align:center;padding:10px 6px;background:#fff;border-radius:10px;border:1px solid #e5e7eb;">
-              <div style="font-size:20px;font-weight:900;color:#6b7280;">${med.threshold}</div>
-              <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;margin-top:2px;">day alert</div>
+              <div style="font-size:20px;font-weight:900;color:#6b7280;font-family:'Cairo',sans-serif;">${med.threshold}</div>
+              <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;margin-top:2px;font-family:'Cairo',sans-serif;">day alert</div>
             </td>
           </tr></table>
           <div style="margin-top:12px;">
-            <div style="font-size:10px;color:${barColor};font-weight:700;text-align:right;margin-bottom:4px;">${daysBar}% of threshold</div>
+            <div style="font-size:10px;color:${barColor};font-weight:700;text-align:right;margin-bottom:4px;font-family:'Cairo',sans-serif;">${daysBar}% of threshold</div>
             <div style="height:6px;background:#e5e7eb;border-radius:99px;overflow:hidden;">
               <div style="height:6px;width:${daysBar}%;background:${barColor};border-radius:99px;"></div>
             </div>
@@ -170,32 +170,51 @@ export function buildLowStockEmail(data: LowStockEmailData, t: Translation): { s
       </table>`
     }).join("")
 
-  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head>
-<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  </style>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:'Cairo',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f3f4f6;padding:32px 16px;">
 <tr><td align="center"><table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;width:100%;">
   <tr><td style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);border-radius:20px 20px 0 0;padding:32px 32px 28px;">
     <table cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
-      <td><div style="font-size:22px;font-weight:900;color:#fff;">💊 MediStock</div>
-          <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:2px;">Medication Inventory Alert</div></td>
+      <td><div style="font-size:22px;font-weight:900;color:#fff;font-family:'Cairo',sans-serif;">💊 MediStock</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:2px;font-family:'Cairo',sans-serif;">Medication Inventory Alert</div></td>
       <td align="right"><div style="background:rgba(255,255,255,0.15);border-radius:12px;padding:8px 14px;">
-        <div style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:600;text-transform:uppercase;">Patient</div>
-        <div style="font-size:16px;font-weight:800;color:#fff;">${data.patientName}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:600;text-transform:uppercase;font-family:'Cairo',sans-serif;">Patient</div>
+        <div style="font-size:16px;font-weight:800;color:#fff;font-family:'Cairo',sans-serif;">${data.patientName}</div>
       </div></td>
     </tr></table>
   </td></tr>
   <tr><td style="background:#fff;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;padding:28px 32px;">
-    <p style="margin:0 0 20px;font-size:14px;color:#374151;line-height:1.6;">Hello <strong>${data.toName || "Caregiver"}</strong>,<br/>
+    <p style="margin:0 0 20px;font-size:14px;color:#374151;line-height:1.6;font-family:'Cairo',sans-serif;">Hello <strong>${data.toName || "Caregiver"}</strong>,<br/>
     The following medications for <strong>${data.patientName}</strong> require your attention.</p>
     ${medCards}
     <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:24px;"><tr><td align="center">
-      <a href="${appUrl}/inventory" style="display:inline-block;background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:12px;text-decoration:none;">📦 Go to Inventory →</a>
+      <a href="${appUrl}/inventory" style="display:inline-block;background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:12px;text-decoration:none;font-family:'Cairo',sans-serif;">📦 Go to Inventory →</a>
     </td></tr></table>
   </td></tr>
+  <tr><td style="background:#fef3c7;border:2px solid #fbbf24;padding:16px 24px;margin-top:12px;">
+    <table cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
+      <td width="32" valign="top"><div style="font-size:24px;">⚕️</div></td>
+      <td><p style="margin:0;font-size:12px;font-weight:600;color:#92400e;line-height:1.5;font-family:'Cairo',sans-serif;">
+        <strong>Medical Disclaimer:</strong> MediStock is a medication tracking tool only — not a substitute for medical advice. 
+        Always consult a qualified healthcare professional before making any changes to medication regimens.
+      </p></td>
+    </tr></table>
+  </td></tr>
   <tr><td style="background:#f9fafb;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 20px 20px;padding:16px 32px;">
-    <p style="margin:0;font-size:11px;color:#9ca3af;">MediStock — Medication tracking for caregivers.<br/>
-    <a href="${appUrl}/settings" style="color:#3b82f6;text-decoration:none;">Manage email preferences</a></p>
-    <p style="margin:8px 0 0;font-size:10px;color:#d1d5db;text-align:center;">⚕️ MediStock is a tracking tool only — not a substitute for medical advice.</p>
+    <p style="margin:0;font-size:11px;color:#9ca3af;font-family:'Cairo',sans-serif;">MediStock — Medication tracking for caregivers.<br/>
+    <a href="${appUrl}/settings" style="color:#3b82f6;text-decoration:none;font-family:'Cairo',sans-serif;">Manage email preferences</a></p>
   </td></tr>
 </table></td></tr></table>
 </body></html>`
@@ -267,56 +286,75 @@ export function buildExpiryEmail(data: ExpiryEmailData, t: Translation): { subje
     <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:12px;border-radius:16px;overflow:hidden;border:1.5px solid ${c.border};background:${c.bg};">
       <tr><td style="padding:16px 20px;">
         <table cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
-          <td><span style="font-size:15px;font-weight:800;color:#111827;">${pkg.medicationName}${pkg.strength ? ` (${pkg.strength})` : ""}</span>
-              ${pkg.lotNumber ? `<br/><span style="font-size:11px;color:#6b7280;">Lot: ${pkg.lotNumber}</span>` : ""}</td>
-          <td align="right" valign="top"><span style="background:${c.badge};color:#fff;font-size:11px;font-weight:800;padding:4px 10px;border-radius:99px;display:inline-block;">${c.icon} ${c.label}</span></td>
+          <td><span style="font-size:15px;font-weight:800;color:#111827;font-family:'Cairo',sans-serif;">${pkg.medicationName}${pkg.strength ? ` (${pkg.strength})` : ""}</span>
+              ${pkg.lotNumber ? `<br/><span style="font-size:11px;color:#6b7280;font-family:'Cairo',sans-serif;">Lot: ${pkg.lotNumber}</span>` : ""}</td>
+          <td align="right" valign="top"><span style="background:${c.badge};color:#fff;font-size:11px;font-weight:800;padding:4px 10px;border-radius:99px;display:inline-block;font-family:'Cairo',sans-serif;">${c.icon} ${c.label}</span></td>
         </tr></table>
         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:12px;"><tr>
           <td width="30%" style="text-align:center;padding:10px 6px;background:#fff;border-radius:10px;border:1px solid #e5e7eb;">
-            <div style="font-size:20px;font-weight:900;color:${c.badge};">${pkg.daysLeft <= 0 ? "0" : pkg.daysLeft}</div>
-            <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;margin-top:2px;">days left</div>
+            <div style="font-size:20px;font-weight:900;color:${c.badge};font-family:'Cairo',sans-serif;">${pkg.daysLeft <= 0 ? "0" : pkg.daysLeft}</div>
+            <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;margin-top:2px;font-family:'Cairo',sans-serif;">days left</div>
           </td>
           <td width="5%"></td>
           <td width="30%" style="text-align:center;padding:10px 6px;background:#fff;border-radius:10px;border:1px solid #e5e7eb;">
-            <div style="font-size:13px;font-weight:800;color:#111827;">${expDate}</div>
-            <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;margin-top:2px;">expiry date</div>
+            <div style="font-size:13px;font-weight:800;color:#111827;font-family:'Cairo',sans-serif;">${expDate}</div>
+            <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;margin-top:2px;font-family:'Cairo',sans-serif;">expiry date</div>
           </td>
           <td width="5%"></td>
           <td width="30%" style="text-align:center;padding:10px 6px;background:#fff;border-radius:10px;border:1px solid #e5e7eb;">
-            <div style="font-size:20px;font-weight:900;color:#374151;">${pkg.quantity}</div>
-            <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;margin-top:2px;">${pkg.unitType}s</div>
+            <div style="font-size:20px;font-weight:900;color:#374151;font-family:'Cairo',sans-serif;">${pkg.quantity}</div>
+            <div style="font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;margin-top:2px;font-family:'Cairo',sans-serif;">${pkg.unitType}s</div>
           </td>
         </tr></table>
-        <p style="margin:10px 0 0;font-size:12px;font-weight:700;color:${c.badge};">${daysLabel}</p>
+        <p style="margin:10px 0 0;font-size:12px;font-weight:700;color:${c.badge};font-family:'Cairo',sans-serif;">${daysLabel}</p>
       </td></tr>
     </table>`
   }).join("")
 
-  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head>
-<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  </style>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:'Cairo',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f3f4f6;padding:32px 16px;">
 <tr><td align="center"><table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;width:100%;">
   <tr><td style="background:linear-gradient(135deg,#7c3aed 0%,#a855f7 100%);border-radius:20px 20px 0 0;padding:28px 32px;">
     <table cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
-      <td><div style="font-size:22px;font-weight:900;color:#fff;">💊 MediStock</div>
-          <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:2px;">Medication Expiry Alert</div></td>
+      <td><div style="font-size:22px;font-weight:900;color:#fff;font-family:'Cairo',sans-serif;">💊 MediStock</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:2px;font-family:'Cairo',sans-serif;">Medication Expiry Alert</div></td>
       <td align="right"><div style="background:rgba(255,255,255,0.15);border-radius:12px;padding:8px 14px;">
-        <div style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:600;text-transform:uppercase;">Patient</div>
-        <div style="font-size:16px;font-weight:800;color:#fff;">${data.patientName}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:600;text-transform:uppercase;font-family:'Cairo',sans-serif;">Patient</div>
+        <div style="font-size:16px;font-weight:800;color:#fff;font-family:'Cairo',sans-serif;">${data.patientName}</div>
       </div></td>
     </tr></table>
   </td></tr>
   <tr><td style="background:#fff;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;padding:28px 32px;">
-    <p style="margin:0 0 20px;font-size:14px;color:#374151;line-height:1.6;">Hello <strong>${data.toName}</strong>,<br/>
+    <p style="margin:0 0 20px;font-size:14px;color:#374151;line-height:1.6;font-family:'Cairo',sans-serif;">Hello <strong>${data.toName}</strong>,<br/>
     The following packages for <strong>${data.patientName}</strong> require your attention.</p>
     ${pkgCards}
     <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:24px;"><tr><td align="center">
-      <a href="${appUrl}/packages" style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:12px;text-decoration:none;">📦 Manage Packages →</a>
+      <a href="${appUrl}/packages" style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:12px;text-decoration:none;font-family:'Cairo',sans-serif;">📦 Manage Packages →</a>
     </td></tr></table>
   </td></tr>
+  <tr><td style="background:#fef3c7;border:2px solid #fbbf24;padding:16px 24px;margin-top:12px;">
+    <table cellpadding="0" cellspacing="0" border="0" width="100%"><tr>
+      <td width="32" valign="top"><div style="font-size:24px;">⚕️</div></td>
+      <td><p style="margin:0;font-size:12px;font-weight:600;color:#92400e;line-height:1.5;font-family:'Cairo',sans-serif;">
+        <strong>Medical Disclaimer:</strong> MediStock is a medication tracking tool only — not a substitute for medical advice. 
+        Always consult a qualified healthcare professional before making any changes to medication regimens.
+      </p></td>
+    </tr></table>
+  </td></tr>
   <tr><td style="background:#f9fafb;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 20px 20px;padding:16px 32px;">
-    <p style="margin:0;font-size:11px;color:#9ca3af;">MediStock — Medication tracking for caregivers. <a href="${appUrl}/settings" style="color:#7c3aed;">Manage alerts</a></p>
-    <p style="margin:8px 0 0;font-size:10px;color:#d1d5db;text-align:center;">⚕️ MediStock is a tracking tool only — not a substitute for medical advice.</p>
+    <p style="margin:0;font-size:11px;color:#9ca3af;font-family:'Cairo',sans-serif;">MediStock — Medication tracking for caregivers. <a href="${appUrl}/settings" style="color:#7c3aed;font-family:'Cairo',sans-serif;">Manage alerts</a></p>
   </td></tr>
 </table></td></tr></table>
 </body></html>`
