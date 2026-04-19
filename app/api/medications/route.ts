@@ -25,6 +25,9 @@ export async function GET(req: NextRequest) {
 
   const userId = (session.user as { id: string }).id
   const meds = await prisma.medication.findMany({
+    where: {
+      patientMedications: { some: { active: true, patient: { userId } } },
+    },
     orderBy: { name: "asc" },
     include: {
       patientMedications: {
