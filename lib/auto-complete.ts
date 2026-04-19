@@ -7,7 +7,7 @@
 import { prisma } from "@/lib/prisma"
 import { calcAvgDailyPills, calcDaysRemaining, parseJsonArray } from "@/lib/calculations"
 import { sendLowStockEmail } from "@/lib/email"
-import { lowStockMessage } from "@/lib/notification-messages"
+import { lowStockMessage, lowStockEmailSentMessage } from "@/lib/notification-messages"
 
 export async function runAutoComplete() {
   const now = new Date()
@@ -76,6 +76,7 @@ export async function runAutoComplete() {
     const daysLeft = calcDaysRemaining(newStock, avgDaily)
 
     if (daysLeft <= pm.lowStockThreshold) {
+      const user = pm.patient.user as typeof pm.patient.user & { emailNotifs: boolean; emailAlertLevel: string }
       const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0)
       const existing = await prisma.notification.findFirst({
         where: { userId: pm.patient.userId, patientId: pm.patientId, type: "LOW_STOCK", createdAt: { gte: todayStart } },
@@ -93,9 +94,8 @@ export async function runAutoComplete() {
         results.lowStockAlerts++
       }
 
-      const user = pm.patient.user as typeof pm.patient.user & { emailNotifs: boolean; emailAlertLevel: string }
       const status: "critical" | "low" = daysLeft <= 3 || newStock <= pm.lowStockThreshold / 2 ? "critical" : "low"
-      const alertLevel = (user as any).emailAlertLevel ?? "low"
+      const alertLevel = user.emailAlertLevel ?? "low"
 
       const shouldEmailForStatus =
         user.emailNotifs &&
@@ -154,7 +154,7 @@ export async function runAutoComplete() {
           patientId: batch.patientId,
           type:      "LOW_STOCK",
           channel:   "EMAIL",
-          message:   `Email alert sent for ${batch.patientName}: ${batch.items.map(i => i.brandName ?? i.name).join(", ")}`,
+          message:   lowStockEmailSentMessage(batch.patientName, batch.items.map(i => i.brandName ?? i.name).join(", "), batch.user.language),
           sentAt:    now,
         },
       })

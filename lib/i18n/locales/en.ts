@@ -14,6 +14,7 @@ const en: Translation = {
     close: "Close", yes: "Yes", no: "No", total: "Total", today: "Today", yesterday: "Yesterday",
     days: "days", daysLeft: "days left", daysAgo: "days ago", pending: "Pending", taken: "Taken",
     missed: "Missed", soon: "Soon", allPatients: "All Patients", language: "Language",
+    disclaimer: "⚕️ MediStock is a medication tracking tool only — not medical advice. Always consult a qualified healthcare professional.",
   },
   dashboard: {
     title: "Dashboard", totalPatients: "Total Patients", underActiveCare: "under active care",

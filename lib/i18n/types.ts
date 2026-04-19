@@ -49,6 +49,7 @@ export interface Translation {
     soon:        string
     allPatients: string
     language:    string
+    disclaimer:  string
   }
 
   // ── Dashboard ─────────────────────────────────────────────────────────

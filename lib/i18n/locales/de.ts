@@ -16,6 +16,7 @@ const de: Translation = {
     daysLeft: "Tage verbleibend", daysAgo: "Tage zuvor", pending: "Ausstehend",
     taken: "Eingenommen", missed: "Verpasst", soon: "Bald",
     allPatients: "Alle Patienten", language: "Sprache",
+    disclaimer: "⚕️ MediStock ist nur ein Werkzeug zur Medikamentenverfolgung — kein Ersatz für medizinischen Rat. Konsultieren Sie immer einen qualifizierten Arzt.",
   },
   dashboard: {
     title: "Dashboard", totalPatients: "Gesamtpatienten", underActiveCare: "in aktiver Betreuung",

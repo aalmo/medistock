@@ -4,9 +4,11 @@ import { useState } from "react"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { Navbar } from "@/components/layout/Navbar"
 import { BottomNav } from "@/components/layout/BottomNav"
+import { useT } from "@/lib/i18n/context"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { t } = useT()
 
   return (
     <div className="flex min-h-screen bg-[#f5f6fa]">
@@ -18,7 +20,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </main>
         <footer className="hidden lg:block px-4 py-3 text-xs text-muted-foreground border-t bg-white text-center">
-          ⚕️ MediStock is a medication tracking tool only — not medical advice. Always consult a qualified healthcare professional.
+          {t.common.disclaimer}
         </footer>
       </div>
       {/* Bottom navigation — mobile only */}

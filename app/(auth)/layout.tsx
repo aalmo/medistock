@@ -16,9 +16,16 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
           <p className="text-slate-500 mt-1">Medication management for caregivers</p>
         </div>
         {children}
-        <p className="text-center text-xs text-slate-400 mt-6">
-          &copy; {new Date().getFullYear()} MediStock. All rights reserved.
-        </p>
+        <div className="mt-6 space-y-3">
+          <p className="text-center text-xs text-slate-400">
+            &copy; {new Date().getFullYear()} MediStock. All rights reserved.
+          </p>
+          <div className="px-4 py-3 bg-blue-50/50 border border-blue-100 rounded-lg">
+            <p className="text-center text-xs text-blue-700 leading-relaxed">
+              ⚕️ MediStock is a medication tracking tool only — not medical advice. Always consult a qualified healthcare professional.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )
