@@ -36,6 +36,8 @@ export async function POST(req: NextRequest) {
                 where:   { expiryDate: { gte: todayStart } },
                 orderBy: { expiryDate: "asc" },
               },
+              // All active schedules — needed for accurate avgDailyPills across the whole medication
+              schedules: { where: { active: true } },
             },
           },
         },
@@ -45,22 +47,31 @@ export async function POST(req: NextRequest) {
 
   const results = { processed: 0, lowStockAlerts: 0 }
 
+  // Group logs by patientMedicationId to avoid race conditions when multiple
+  // dose logs for the same medication fall in the same 15-minute window.
+  const pmGroups = new Map<string, typeof dueLogs>()
   for (const log of dueLogs) {
-    const pm           = log.schedule.patientMedication
-    const pillsPerDose = log.schedule.pillsPerDose
+    const pmId = log.schedule.patientMedicationId
+    if (!pmGroups.has(pmId)) pmGroups.set(pmId, [])
+    pmGroups.get(pmId)!.push(log)
+  }
+
+  for (const [, logs] of pmGroups) {
+    const pm              = logs[0].schedule.patientMedication
+    const totalPills      = logs.reduce((sum, l) => sum + l.schedule.pillsPerDose, 0)
 
     let newStock: number
 
     if (pm.packages.length === 0) {
       // ── Fallback: no packages — direct decrement (legacy / migrated) ──
-      newStock = Math.max(0, pm.pillsInStock - pillsPerDose)
+      newStock = Math.max(0, pm.pillsInStock - totalPills)
       await prisma.patientMedication.update({
         where: { id: pm.id },
         data:  { pillsInStock: newStock },
       })
     } else {
       // ── FIFO package deduction ──
-      let remaining = pillsPerDose
+      let remaining = totalPills
 
       for (const pkg of pm.packages) {
         if (remaining <= 0) break
@@ -69,7 +80,6 @@ export async function POST(req: NextRequest) {
         const newQty = pkg.quantity - deduct
 
         if (newQty <= 0) {
-          // Package exhausted — delete it
           await prisma.medicationPackage.delete({ where: { id: pkg.id } })
         } else {
           await prisma.medicationPackage.update({
@@ -85,36 +95,45 @@ export async function POST(req: NextRequest) {
       newStock = await syncPillsInStock(pm.id)
     }
 
-    await prisma.doseLog.update({
-      where: { id: log.id },
-      data: {
-        status:           "TAKEN",
-        takenAt:          now,
-        pillsDecremented: pillsPerDose,
-      },
-    })
+    // Mark all logs in this group as TAKEN and create inventory events
+    for (const log of logs) {
+      await prisma.doseLog.update({
+        where: { id: log.id },
+        data: {
+          status:           "TAKEN",
+          takenAt:          now,
+          pillsDecremented: log.schedule.pillsPerDose,
+        },
+      })
 
-    await prisma.inventoryEvent.create({
-      data: {
-        patientMedicationId: pm.id,
-        type:                "DECREMENT",
-        quantity:            -pillsPerDose,
-        reason:              "Auto-decrement (scheduled)",
-      },
-    })
+      await prisma.inventoryEvent.create({
+        data: {
+          patientMedicationId: pm.id,
+          type:                "DECREMENT",
+          quantity:            -log.schedule.pillsPerDose,
+          reason:              "Auto-decrement (scheduled)",
+        },
+      })
 
-    results.processed++
+      results.processed++
+    }
 
-    // ── Low-stock check ──
-    const avgDaily = calcAvgDailyPills({
-      timesOfDay:   parseJsonArray(log.schedule.timesOfDay, ["08:00"]),
-      daysOfWeek:   parseJsonArray(log.schedule.daysOfWeek, [1, 2, 3, 4, 5, 6, 7]),
-      pillsPerDose: log.schedule.pillsPerDose,
-      startDate:    log.schedule.startDate,
-    })
+    // ── Low-stock check — use sum of ALL active schedules for accurate daysLeft ──
+    const avgDaily = pm.schedules.reduce((sum, s) =>
+      sum + calcAvgDailyPills({
+        timesOfDay:   parseJsonArray(s.timesOfDay,  ["08:00"]),
+        daysOfWeek:   parseJsonArray(s.daysOfWeek,  [1, 2, 3, 4, 5, 6, 7]),
+        pillsPerDose: s.pillsPerDose,
+        startDate:    s.startDate,
+        endDate:      s.endDate,
+      }), 0)
+
     const daysLeft = calcDaysRemaining(newStock, avgDaily)
 
-    if (daysLeft <= pm.lowStockThreshold) {
+    const isLowByDays  = daysLeft  <= pm.lowStockThreshold
+    const isLowByPills = newStock  <= pm.lowStockPills
+
+    if (isLowByDays || isLowByPills) {
       const dayStart = new Date(now)
       dayStart.setHours(0, 0, 0, 0)
       const existing = await prisma.notification.findFirst({

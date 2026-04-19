@@ -74,9 +74,13 @@ export function generateDoseTimes(
 }
 
 /**
- * Average units consumed per day (supports fractional doses e.g. 0.5 pills/dose)
+ * Average units consumed per day (supports fractional doses e.g. 0.5 pills/dose).
+ * Returns 0 if the schedule hasn't started yet or has already ended.
  */
 export function calcAvgDailyPills(schedule: ScheduleConfig): number {
+  const today = startOfDay(new Date())
+  if (schedule.startDate && startOfDay(new Date(schedule.startDate)) > today) return 0
+  if (schedule.endDate   && startOfDay(new Date(schedule.endDate))   < today) return 0
   const times = parseJsonArray<string>(schedule.timesOfDay, ['08:00']);
   const days = parseJsonArray<number>(schedule.daysOfWeek, [1,2,3,4,5,6,7]);
   const daysPerWeek = days.length;
