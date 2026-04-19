@@ -78,6 +78,7 @@ const en: Translation = {
     disposeNow: "dispose immediately", expiresIn: "Expires in",
     package: "package", packages: "packages",
     dosesPerPackage: "Doses/Package", expires: "Expires",
+    untilExpiry: "until expiry", daysSupply: "days supply",
     openedLabel: "Opened", lotLabel: "Lot",
     addAnotherBtn: "Add another package for this medication",
     deleteConfirmPkg: "Delete this package?",

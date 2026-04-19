@@ -7,9 +7,9 @@ import {
   Package, Plus, Trash2, Pencil, X, Check, ChevronDown, ChevronUp,
   CalendarClock, Boxes, ShieldAlert, Timer, ShieldCheck, Clock4
 } from "lucide-react"
-import { useT } from "@/lib/i18n/context"
+import { useT, tUnitLabel } from "@/lib/i18n/context"
 import type { Locale } from "@/lib/i18n/types"
-import { parseJsonArray } from "@/lib/calculations"
+import { parseJsonArray, calcAvgDailyPills } from "@/lib/calculations"
 import { TagBadges } from "@/components/ui/tag-badges"
 
 const DATE_FNS_LOCALES: Record<Locale, any> = {
@@ -31,6 +31,7 @@ interface MedPackage {
   patientMedication: {
     medication: { name: string; brandName: string | null; strength: string | null; tags: string | null }
     patient:    { id: string; name: string }
+    schedules:  Array<{ timesOfDay: string; daysOfWeek: string; pillsPerDose: number; startDate: string; endDate: string | null }>
   }
 }
 
@@ -54,44 +55,50 @@ interface PatientMed {
 }
 
 function PackageModal({
-  onClose, onSaved, editPkg, patientMeds
+  onClose, onSaved, editPkg, patientMeds, defaultPmId
 }: {
   onClose: () => void
   onSaved: () => void
   editPkg?: MedPackage | null
   patientMeds: PatientMed[]
+  defaultPmId?: string
 }) {
   const { t, dir } = useT()
   const [form, setForm] = useState({
-    patientMedicationId: editPkg?.patientMedicationId ?? (patientMeds[0]?.id ?? ""),
+    patientMedicationId: editPkg?.patientMedicationId ?? defaultPmId ?? (patientMeds[0]?.id ?? ""),
     expiryDate:          editPkg ? format(new Date(editPkg.expiryDate), "yyyy-MM-dd") : "",
     quantity:            editPkg?.quantity ?? 1,
     lotNumber:           editPkg?.lotNumber ?? "",
     opened:              editPkg?.opened ?? false,
     notes:               editPkg?.notes ?? "",
   })
-  const [saving, setSaving] = useState(false)
-  const [error,  setError]  = useState("")
+  const [pkgCount, setPkgCount] = useState(1)
+  const [saving,   setSaving]   = useState(false)
+  const [error,    setError]    = useState("")
 
   const selectedPm = patientMeds.find(p => p.id === form.patientMedicationId)
 
   const save = async () => {
     if (!form.patientMedicationId || !form.expiryDate) { setError(t.packages.medAndExpiryRequired); return }
     setSaving(true); setError("")
-      try {
-        const url    = editPkg ? `/api/packages/${editPkg.id}` : "/api/packages"
-        const method = editPkg ? "PATCH" : "POST"
-        const res    = await fetch(url, {
-          method, headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...form,
-            quantity:  Number(form.quantity),
-            unitType:  selectedPm?.unitType ?? "pill",
-          }),
+    try {
+      if (editPkg) {
+        const res = await fetch(`/api/packages/${editPkg.id}`, {
+          method: "PATCH", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...form, quantity: Number(form.quantity), unitType: selectedPm?.unitType ?? "pill" }),
         })
         if (!res.ok) { setError(t.packages.saveFailed); return }
-        onSaved()
-      } catch { setError(t.packages.saveFailed) }
+      } else {
+        for (let i = 0; i < pkgCount; i++) {
+          const res = await fetch("/api/packages", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...form, quantity: Number(form.quantity), unitType: selectedPm?.unitType ?? "pill" }),
+          })
+          if (!res.ok) { setError(t.packages.saveFailed); return }
+        }
+      }
+      onSaved()
+    } catch { setError(t.packages.saveFailed) }
     finally   { setSaving(false) }
   }
 
@@ -132,59 +139,130 @@ function PackageModal({
             </select>
           </div>
 
-          {/* Expiry date + quantity */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t.packages.expiryDate} *</label>
-              <input type="date"
-                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
-                value={form.expiryDate}
-                onChange={e => setForm(f => ({ ...f, expiryDate: e.target.value }))}
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                {t.packages.quantityUnit} ({selectedPm?.unitType ?? "units"})
-              </label>
-              <input type="number" min={0.5} step={0.5}
-                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
-                value={form.quantity}
-                onChange={e => setForm(f => ({ ...f, quantity: Number(e.target.value) }))}
-              />
-            </div>
-          </div>
+          {/* Add mode: violet package details box (same as AddMedicationDialog step 3) */}
+          {!editPkg ? (
+            <div className="rounded-xl border border-violet-100 bg-violet-50/60 p-4 space-y-3">
+              <p className="text-sm font-semibold text-violet-800">{t.addMedDialog.packageDetails}</p>
 
-          {/* Lot number */}
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t.packages.lotNumber}</label>
-            <input type="text" placeholder={t.packages.lotPlaceholder}
-              className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
-              value={form.lotNumber}
-              onChange={e => setForm(f => ({ ...f, lotNumber: e.target.value }))}
-            />
-          </div>
+              {/* Number of packages + quantity per package */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t.addMedDialog.numPackages}</label>
+                  <input type="number" min={1} step={1}
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                    value={pkgCount}
+                    onChange={e => setPkgCount(Math.max(1, Math.floor(Number(e.target.value))))}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    {tUnitLabel(t, selectedPm?.unitType ?? "unit")} {t.addMedDialog.perPackage}
+                  </label>
+                  <input type="number" min={0.5} step={0.5}
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                    value={form.quantity}
+                    onChange={e => setForm(f => ({ ...f, quantity: Number(e.target.value) }))}
+                  />
+                </div>
+              </div>
 
-          {/* Opened toggle */}
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <div>
-              <p className="text-sm font-semibold text-slate-800">{t.packages.opened}</p>
-              <p className="text-xs text-slate-500">{t.packages.openedDesc}</p>
+              {/* Summary row */}
+              {pkgCount > 1 && (
+                <div className="flex items-center justify-between rounded-lg bg-violet-100/70 px-3 py-2 text-xs font-medium text-violet-800">
+                  <span>{pkgCount} × {form.quantity} {tUnitLabel(t, selectedPm?.unitType ?? "unit")}</span>
+                  <span className="font-bold">{pkgCount * form.quantity} {tUnitLabel(t, selectedPm?.unitType ?? "unit")} {t.units.total}</span>
+                </div>
+              )}
+
+              {/* Expiry date + lot number */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t.packages.expiryDate} *</label>
+                  <input type="date"
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                    value={form.expiryDate}
+                    onChange={e => setForm(f => ({ ...f, expiryDate: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    {t.packages.lotNumber} <span className="font-normal text-slate-400">({t.addMedDialog.lotOptional})</span>
+                  </label>
+                  <input type="text" placeholder="e.g. LOT2025A"
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                    value={form.lotNumber}
+                    onChange={e => setForm(f => ({ ...f, lotNumber: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              {/* Note */}
+              <p className="text-[11px] text-violet-600">
+                {pkgCount > 1
+                  ? t.addMedDialog.multiPkgNote
+                      .replace("{count}", String(pkgCount))
+                      .replace("{qty}",   String(form.quantity))
+                      .replace("{unit}",  tUnitLabel(t, selectedPm?.unitType ?? "unit"))
+                  : t.addMedDialog.morePkgLater}
+              </p>
             </div>
-            <button onClick={() => setForm(f => ({ ...f, opened: !f.opened }))}
-              className={`relative h-6 w-11 rounded-full transition-colors duration-200 ${form.opened ? "bg-violet-600" : "bg-slate-300"}`}>
-              <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${form.opened ? "translate-x-5" : ""}`} />
-            </button>
-          </div>
+          ) : (
+            <>
+              {/* Edit mode: expiry date + quantity */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t.packages.expiryDate} *</label>
+                  <input type="date"
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                    value={form.expiryDate}
+                    onChange={e => setForm(f => ({ ...f, expiryDate: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    {t.packages.quantityUnit} ({tUnitLabel(t, selectedPm?.unitType ?? "unit")})
+                  </label>
+                  <input type="number" min={0.5} step={0.5}
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                    value={form.quantity}
+                    onChange={e => setForm(f => ({ ...f, quantity: Number(e.target.value) }))}
+                  />
+                </div>
+              </div>
 
-          {/* Notes */}
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t.common.notes}</label>
-            <textarea rows={2} placeholder={t.common.optional + "..."}
-              className="w-full resize-none rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
-              value={form.notes}
-              onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-            />
-          </div>
+              {/* Lot number */}
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t.packages.lotNumber}</label>
+                <input type="text" placeholder={t.packages.lotPlaceholder}
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                  value={form.lotNumber}
+                  onChange={e => setForm(f => ({ ...f, lotNumber: e.target.value }))}
+                />
+              </div>
+
+              {/* Opened toggle */}
+              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">{t.packages.opened}</p>
+                  <p className="text-xs text-slate-500">{t.packages.openedDesc}</p>
+                </div>
+                <button onClick={() => setForm(f => ({ ...f, opened: !f.opened }))}
+                  className={`relative h-6 w-11 rounded-full transition-colors duration-200 ${form.opened ? "bg-violet-600" : "bg-slate-300"}`}>
+                  <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${form.opened ? "translate-x-5" : ""}`} />
+                </button>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t.common.notes}</label>
+                <textarea rows={2} placeholder={t.common.optional + "..."}
+                  className="w-full resize-none rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                  value={form.notes}
+                  onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+                />
+              </div>
+            </>
+          )}
         </div>
 
         {/* Footer */}
@@ -211,6 +289,7 @@ export default function PackagesPage() {
   const [loading,     setLoading]     = useState(true)
   const [modal,       setModal]       = useState<"add" | "edit" | null>(null)
   const [editTarget,  setEditTarget]  = useState<MedPackage | null>(null)
+  const [defaultPmId, setDefaultPmId] = useState<string | undefined>(undefined)
   const [filter,      setFilter]      = useState<"all" | "expired" | "critical" | "warning" | "good">("all")
   const [expandedPm,  setExpandedPm]  = useState<string | null>(null)
   const [alertDays,   setAlertDays]   = useState(30)
@@ -304,7 +383,7 @@ export default function PackagesPage() {
           <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{t.packages.title}</h1>
           <p className="mt-1 text-sm font-medium text-slate-500">{t.packages.subtitle}</p>
         </div>
-        <button onClick={() => { setEditTarget(null); setModal("add") }}
+        <button onClick={() => { setEditTarget(null); setDefaultPmId(undefined); setModal("add") }}
           className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_24px_-12px_rgba(109,40,217,0.7)] transition-all hover:-translate-y-px hover:shadow-[0_16px_28px_-12px_rgba(109,40,217,0.75)]">
           <Plus className="h-4 w-4" /> {t.packages.addPackage}
         </button>
@@ -430,21 +509,46 @@ export default function PackagesPage() {
                 {/* Expanded packages */}
                 {isExpanded && (
                   <div className="divide-y divide-slate-100 border-t border-slate-100">
-                    {group.items
-                      .slice()
-                      .sort((a: MedPackage, b: MedPackage) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime())
-                      .map((pkg: MedPackage) => {
-                        const s      = getExpStatus(pkg.expiryDate, alertDays)
-                        const expFmt = format(new Date(pkg.expiryDate), "dd MMM yyyy", { locale: DATE_FNS_LOCALES[locale] })
+                    {(() => {
+                        // avgDaily is identical for every package in the group (shared patientMedication)
+                        const schedules = group.items[0]?.patientMedication.schedules ?? []
+                        const avgDaily  = schedules.reduce((sum, sch) =>
+                          sum + calcAvgDailyPills({
+                            timesOfDay:   parseJsonArray(sch.timesOfDay,  ["08:00"]),
+                            daysOfWeek:   parseJsonArray(sch.daysOfWeek,  [1,2,3,4,5,6,7]),
+                            pillsPerDose: sch.pillsPerDose,
+                            startDate:    new Date(sch.startDate),
+                            endDate:      sch.endDate ? new Date(sch.endDate) : null,
+                          }), 0)
+                        // FIFO: packages are consumed in expiry order; earlier packages must be
+                        // exhausted before the next one starts, so track cumulative qty consumed.
+                        let cumulativeQty = 0
+                        return group.items
+                          .slice()
+                          .sort((a: MedPackage, b: MedPackage) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime())
+                          .map((pkg: MedPackage) => {
+                            const s      = getExpStatus(pkg.expiryDate, alertDays)
+                            const expFmt = format(new Date(pkg.expiryDate), "dd MMM yyyy", { locale: DATE_FNS_LOCALES[locale] })
+
+                            const qtyBefore  = cumulativeQty
+                            cumulativeQty   += pkg.quantity
+                            let supplyDays: number | null = null
+                            if (avgDaily > 0) {
+                              const daysBeforeThis  = qtyBefore / avgDaily
+                              const daysUntilExpiry = Math.max(0, differenceInDays(new Date(pkg.expiryDate), new Date()))
+                              const effectiveDays   = Math.max(0, daysUntilExpiry - daysBeforeThis)
+                              supplyDays = Math.min(Math.floor(pkg.quantity / avgDaily), Math.floor(effectiveDays))
+                            }
+
                         return (
                           <div key={pkg.id} className={`flex items-center gap-4 px-5 py-4 ${s.bg}`}>
-                            {/* Days indicator */}
+                            {/* Expiry countdown */}
                             <div className="w-14 shrink-0 text-center">
                               <p className="text-xl font-semibold leading-none" style={{ color: s.color }}>
                                 {s.key === "expired" ? "EXP" : s.days}
                               </p>
                               <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-500">
-                                {s.key === "expired" ? t.common.daysAgo : t.common.daysLeft}
+                                {s.key === "expired" ? t.common.daysAgo : t.packages.untilExpiry}
                               </p>
                             </div>
 
@@ -452,11 +556,21 @@ export default function PackagesPage() {
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
                                 <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${s.badge}`}>{statusLabels[s.key]}</span>
+                                {/* Days of supply badge */}
+                                {supplyDays !== null && (
+                                  <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold border ${
+                                    supplyDays <= 3   ? "bg-red-100 text-red-700 border-red-200" :
+                                    supplyDays <= 14  ? "bg-amber-100 text-amber-700 border-amber-200" :
+                                                        "bg-emerald-100 text-emerald-700 border-emerald-200"
+                                  }`}>
+                                    {supplyDays} {t.packages.daysSupply}
+                                  </span>
+                                )}
                                 {pkg.opened && <span className="rounded-full bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700">{t.packages.openedLabel}</span>}
                                 {pkg.lotNumber && <span className="font-mono text-[10px] text-slate-500">{t.packages.lotLabel}: {pkg.lotNumber}</span>}
                               </div>
                               <p className="mt-1 text-xs text-slate-600">
-                                <span className="font-semibold">{pkg.quantity} {t.packages.dosesPerPackage}</span>
+                                <span className="font-semibold">{pkg.quantity} {tUnitLabel(t, pkg.unitType, pkg.quantity)}</span>
                                 <span className="text-slate-500"> · {t.packages.expires} {expFmt}</span>
                               </p>
                               {pkg.notes && <p className="mt-0.5 text-[11px] italic text-slate-500">{pkg.notes}</p>}
@@ -485,7 +599,8 @@ export default function PackagesPage() {
                             </div>
                           </div>
                         )
-                      })}
+                          })
+                    })()}
 
                     {/* Add package to this medication */}
                     <button
@@ -493,6 +608,7 @@ export default function PackagesPage() {
                         const pm = patientMeds.find(p => p.id === group.pmId)
                         if (pm) {
                           setEditTarget(null)
+                          setDefaultPmId(group.pmId)
                           setModal("add")
                         }
                       }}
@@ -513,8 +629,9 @@ export default function PackagesPage() {
         <PackageModal
           patientMeds={patientMeds}
           editPkg={modal === "edit" ? editTarget : null}
-          onClose={() => { setModal(null); setEditTarget(null) }}
-          onSaved={() => { setModal(null); setEditTarget(null); load() }}
+          defaultPmId={modal === "add" ? defaultPmId : undefined}
+          onClose={() => { setModal(null); setEditTarget(null); setDefaultPmId(undefined) }}
+          onSaved={() => { setModal(null); setEditTarget(null); setDefaultPmId(undefined); load() }}
         />
       )}
     </div>

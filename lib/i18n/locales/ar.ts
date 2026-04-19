@@ -170,6 +170,7 @@ const ar: Translation = {
     packages: "عبوات",
     dosesPerPackage: "جرعات/عبوة",
     expires: "ينتهي في",
+    untilExpiry: "حتى الانتهاء", daysSupply: "أيام إمداد",
     openedLabel: "مفتوحة", lotLabel: "دفعة",
     addAnotherBtn: "إضافة عبوة أخرى لهذا الدواء",
     deleteConfirmPkg: "هل تريد حذف هذه العبوة؟",

@@ -226,6 +226,8 @@ export interface Translation {
     packages:        string
     dosesPerPackage: string
     expires:         string
+    untilExpiry:     string
+    daysSupply:      string
     openedLabel:     string
     lotLabel:        string
     addAnotherBtn:   string

@@ -86,6 +86,7 @@ const de: Translation = {
     disposeNow: "sofort entsorgen", expiresIn: "Läuft ab in",
     package: "Packung", packages: "Packungen",
     dosesPerPackage: "Dosen/Packung", expires: "Luft ab",
+    untilExpiry: "bis Ablauf", daysSupply: "Tage Vorrat",
     openedLabel: "Geöffnet", lotLabel: "Charge",
     addAnotherBtn: "Weitere Packung für dieses Medikament hinzufügen",
     deleteConfirmPkg: "Diese Packung löschen?",

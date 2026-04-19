@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
         include: {
           medication: { select: { name: true, brandName: true, strength: true, tags: true } },
           patient:    { select: { id: true, name: true } },
+          schedules:  { where: { active: true }, select: { timesOfDay: true, daysOfWeek: true, pillsPerDose: true, startDate: true, endDate: true } },
         },
       },
     },

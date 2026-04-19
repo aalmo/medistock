@@ -66,56 +66,70 @@ export async function POST(req: NextRequest) {
   }
 
   for (const [, logs] of pmGroups) {
-    const pm              = logs[0].schedule.patientMedication
-    const totalPills      = logs.reduce((sum, l) => sum + l.schedule.pillsPerDose, 0)
+    const pm = logs[0].schedule.patientMedication
 
+    // ── Idempotency: atomically claim each DoseLog (PENDING → TAKEN) inside
+    // the same transaction as the stock mutation. If the cron retries, the
+    // WHERE status="PENDING" predicate matches 0 rows → we skip entirely.
     let newStock: number
+    let claimedLogs: typeof logs
 
     if (pm.packages.length === 0) {
-      // ── Fallback: no packages — direct decrement (legacy / migrated) ──
-      newStock = Math.max(0, pm.pillsInStock - totalPills)
-      await prisma.patientMedication.update({
-        where: { id: pm.id },
-        data:  { pillsInStock: newStock },
+      // ── Fallback: no packages — direct decrement ──
+      const result = await prisma.$transaction(async (tx) => {
+        const claims = await Promise.all(
+          logs.map(log => tx.doseLog.updateMany({
+            where: { id: log.id, status: "PENDING" },
+            data:  { status: "TAKEN", takenAt: now, pillsDecremented: log.schedule.pillsPerDose },
+          }))
+        )
+        const claimed = logs.filter((_, i) => claims[i].count > 0)
+        if (claimed.length === 0) return null   // already processed
+
+        const totalPills = claimed.reduce((sum, l) => sum + l.schedule.pillsPerDose, 0)
+        const stock      = Math.max(0, pm.pillsInStock - totalPills)
+        await tx.patientMedication.update({ where: { id: pm.id }, data: { pillsInStock: stock } })
+        return { stock, claimed }
       })
+      if (!result) continue
+      newStock    = result.stock
+      claimedLogs = result.claimed
     } else {
-      // ── FIFO package deduction (atomic) ──
-      newStock = await prisma.$transaction(async (tx) => {
-        let remaining = totalPills
+      // ── FIFO package deduction ──
+      const result = await prisma.$transaction(async (tx) => {
+        const claims = await Promise.all(
+          logs.map(log => tx.doseLog.updateMany({
+            where: { id: log.id, status: "PENDING" },
+            data:  { status: "TAKEN", takenAt: now, pillsDecremented: log.schedule.pillsPerDose },
+          }))
+        )
+        const claimed = logs.filter((_, i) => claims[i].count > 0)
+        if (claimed.length === 0) return null   // already processed
+
+        const totalPills = claimed.reduce((sum, l) => sum + l.schedule.pillsPerDose, 0)
+        let remaining    = totalPills
 
         for (const pkg of pm.packages) {
           if (remaining <= 0) break
-
           const deduct = Math.min(pkg.quantity, remaining)
           const newQty = pkg.quantity - deduct
-
           if (newQty <= 0) {
             await tx.medicationPackage.delete({ where: { id: pkg.id } })
           } else {
-            await tx.medicationPackage.update({
-              where: { id: pkg.id },
-              data:  { quantity: newQty },
-            })
+            await tx.medicationPackage.update({ where: { id: pkg.id }, data: { quantity: newQty } })
           }
-
           remaining -= deduct
         }
 
-        return syncPillsInStock(pm.id, tx)
+        return { stock: await syncPillsInStock(pm.id, tx), claimed }
       })
+      if (!result) continue
+      newStock    = result.stock
+      claimedLogs = result.claimed
     }
 
-    // Mark all logs in this group as TAKEN and create inventory events
-    for (const log of logs) {
-      await prisma.doseLog.update({
-        where: { id: log.id },
-        data: {
-          status:           "TAKEN",
-          takenAt:          now,
-          pillsDecremented: log.schedule.pillsPerDose,
-        },
-      })
-
+    // Create inventory events only for the logs we actually claimed this run
+    for (const log of claimedLogs) {
       await prisma.inventoryEvent.create({
         data: {
           patientMedicationId: pm.id,
@@ -124,7 +138,6 @@ export async function POST(req: NextRequest) {
           reason:              "Auto-decrement (scheduled)",
         },
       })
-
       results.processed++
     }
 
