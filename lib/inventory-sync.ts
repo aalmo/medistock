@@ -2,9 +2,13 @@
  * Server-only inventory sync utilities.
  * Never import this from client components.
  */
+import { PrismaClient } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { startOfDay } from "date-fns"
 import { calcAvgDailyPills, calcEffectiveStock, parseJsonArray } from "@/lib/calculations"
+
+// Works with both the regular PrismaClient and a transaction client
+type Db = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
 
 /**
  * Recompute pillsInStock for a PatientMedication from its non-expired packages,
@@ -15,10 +19,10 @@ import { calcAvgDailyPills, calcEffectiveStock, parseJsonArray } from "@/lib/cal
  *
  * Returns the new pillsInStock value.
  */
-export async function syncPillsInStock(pmId: string): Promise<number> {
+export async function syncPillsInStock(pmId: string, db: Db = prisma): Promise<number> {
   const todayStart = startOfDay(new Date())
 
-  const pm = await prisma.patientMedication.findUnique({
+  const pm = await db.patientMedication.findUnique({
     where: { id: pmId },
     include: {
       schedules: { where: { active: true } },
@@ -43,7 +47,7 @@ export async function syncPillsInStock(pmId: string): Promise<number> {
 
   const effective = calcEffectiveStock(pm.packages, avgDaily) ?? 0
 
-  await prisma.patientMedication.update({
+  await db.patientMedication.update({
     where: { id: pmId },
     data:  { pillsInStock: effective },
   })

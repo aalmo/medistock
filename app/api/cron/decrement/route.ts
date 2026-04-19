@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { calcAvgDailyPills, calcDaysRemaining, parseJsonArray } from "@/lib/calculations"
 import { syncPillsInStock } from "@/lib/inventory-sync"
-import { subMinutes, startOfDay } from "date-fns"
+import { subMinutes, startOfDay, addDays } from "date-fns"
 import { lowStockMessage } from "@/lib/notification-messages"
 
 // POST /api/cron/decrement
@@ -16,6 +16,15 @@ export async function POST(req: NextRequest) {
   const now         = new Date()
   const windowStart = subMinutes(now, 15)
   const todayStart  = startOfDay(now)
+
+  // #6 — Re-sync any PM whose package expires today so pillsInStock stays
+  // accurate at day boundaries, even when no dose logs are due.
+  const expiringToday = await prisma.medicationPackage.findMany({
+    where:    { expiryDate: { gte: todayStart, lt: addDays(todayStart, 1) } },
+    select:   { patientMedicationId: true },
+    distinct: ["patientMedicationId"],
+  })
+  await Promise.all(expiringToday.map(({ patientMedicationId }) => syncPillsInStock(patientMedicationId)))
 
   // Find PENDING dose logs that are past due
   const dueLogs = await prisma.doseLog.findMany({
@@ -70,29 +79,30 @@ export async function POST(req: NextRequest) {
         data:  { pillsInStock: newStock },
       })
     } else {
-      // ── FIFO package deduction ──
-      let remaining = totalPills
+      // ── FIFO package deduction (atomic) ──
+      newStock = await prisma.$transaction(async (tx) => {
+        let remaining = totalPills
 
-      for (const pkg of pm.packages) {
-        if (remaining <= 0) break
+        for (const pkg of pm.packages) {
+          if (remaining <= 0) break
 
-        const deduct = Math.min(pkg.quantity, remaining)
-        const newQty = pkg.quantity - deduct
+          const deduct = Math.min(pkg.quantity, remaining)
+          const newQty = pkg.quantity - deduct
 
-        if (newQty <= 0) {
-          await prisma.medicationPackage.delete({ where: { id: pkg.id } })
-        } else {
-          await prisma.medicationPackage.update({
-            where: { id: pkg.id },
-            data:  { quantity: newQty },
-          })
+          if (newQty <= 0) {
+            await tx.medicationPackage.delete({ where: { id: pkg.id } })
+          } else {
+            await tx.medicationPackage.update({
+              where: { id: pkg.id },
+              data:  { quantity: newQty },
+            })
+          }
+
+          remaining -= deduct
         }
 
-        remaining -= deduct
-      }
-
-      // Sync pillsInStock from remaining packages
-      newStock = await syncPillsInStock(pm.id)
+        return syncPillsInStock(pm.id, tx)
+      })
     }
 
     // Mark all logs in this group as TAKEN and create inventory events

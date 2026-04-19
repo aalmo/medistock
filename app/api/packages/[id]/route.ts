@@ -25,8 +25,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const data: Record<string, unknown> = { ...parsed.data }
   if (parsed.data.expiryDate) data.expiryDate = new Date(parsed.data.expiryDate)
 
-  const pkg = await prisma.medicationPackage.update({ where: { id }, data })
-  await syncPillsInStock(pkg.patientMedicationId)
+  const pkg = await prisma.$transaction(async (tx) => {
+    const updated = await tx.medicationPackage.update({ where: { id }, data })
+    await syncPillsInStock(updated.patientMedicationId, tx)
+    return updated
+  })
   return NextResponse.json({ data: pkg })
 }
 
@@ -41,7 +44,9 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   })
   if (!pkg) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
-  await prisma.medicationPackage.delete({ where: { id } })
-  await syncPillsInStock(pkg.patientMedicationId)
+  await prisma.$transaction(async (tx) => {
+    await tx.medicationPackage.delete({ where: { id } })
+    await syncPillsInStock(pkg.patientMedicationId, tx)
+  })
   return NextResponse.json({ ok: true })
 }

@@ -41,19 +41,21 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     newStock = updated.pillsInStock
   } else {
     // FIFO: deduct from earliest-expiry package first
-    let remaining = pillsPerDose
-    for (const pkg of pm.packages) {
-      if (remaining <= 0) break
-      const deduct = Math.min(pkg.quantity, remaining)
-      const newQty = pkg.quantity - deduct
-      if (newQty <= 0) {
-        await prisma.medicationPackage.delete({ where: { id: pkg.id } })
-      } else {
-        await prisma.medicationPackage.update({ where: { id: pkg.id }, data: { quantity: newQty } })
+    newStock = await prisma.$transaction(async (tx) => {
+      let remaining = pillsPerDose
+      for (const pkg of pm.packages) {
+        if (remaining <= 0) break
+        const deduct = Math.min(pkg.quantity, remaining)
+        const newQty = pkg.quantity - deduct
+        if (newQty <= 0) {
+          await tx.medicationPackage.delete({ where: { id: pkg.id } })
+        } else {
+          await tx.medicationPackage.update({ where: { id: pkg.id }, data: { quantity: newQty } })
+        }
+        remaining -= deduct
       }
-      remaining -= deduct
-    }
-    newStock = await syncPillsInStock(id)
+      return syncPillsInStock(id, tx)
+    })
   }
 
   await prisma.inventoryEvent.create({

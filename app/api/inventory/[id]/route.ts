@@ -23,28 +23,26 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const pm = await prisma.patientMedication.findUnique({ where: { id } })
   if (!pm) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
-  // Create the new package
-  await prisma.medicationPackage.create({
-    data: {
-      patientMedicationId: id,
-      quantity,
-      expiryDate: new Date(expiryDate),
-      unitType:   pm.unitType,
-      lotNumber:  lotNumber ?? null,
-    },
-  })
-
-  // Sync pillsInStock from all non-expired packages
-  const newTotal = await syncPillsInStock(id)
-
-  // Log inventory event
-  await prisma.inventoryEvent.create({
-    data: {
-      patientMedicationId: id,
-      type:    "RESTOCK",
-      quantity,
-      reason:  reason ?? "Restock",
-    },
+  const newTotal = await prisma.$transaction(async (tx) => {
+    await tx.medicationPackage.create({
+      data: {
+        patientMedicationId: id,
+        quantity,
+        expiryDate: new Date(expiryDate),
+        unitType:   pm.unitType,
+        lotNumber:  lotNumber ?? null,
+      },
+    })
+    const stock = await syncPillsInStock(id, tx)
+    await tx.inventoryEvent.create({
+      data: {
+        patientMedicationId: id,
+        type:    "RESTOCK",
+        quantity,
+        reason:  reason ?? "Restock",
+      },
+    })
+    return stock
   })
 
   return NextResponse.json({ data: { pillsInStock: newTotal } })

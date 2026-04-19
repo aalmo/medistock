@@ -55,13 +55,14 @@ export async function POST(req: NextRequest) {
   const parsed = packageSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
-  const pkg = await prisma.medicationPackage.create({
-    data: { ...parsed.data, expiryDate: new Date(parsed.data.expiryDate) },
-    include: { patientMedication: { include: { medication: true, patient: true } } },
+  const pkg = await prisma.$transaction(async (tx) => {
+    const created = await tx.medicationPackage.create({
+      data: { ...parsed.data, expiryDate: new Date(parsed.data.expiryDate) },
+      include: { patientMedication: { include: { medication: true, patient: true } } },
+    })
+    await syncPillsInStock(parsed.data.patientMedicationId, tx)
+    return created
   })
-
-  // Sync pillsInStock on the parent PatientMedication
-  await syncPillsInStock(parsed.data.patientMedicationId)
 
   return NextResponse.json({ data: pkg }, { status: 201 })
 }
