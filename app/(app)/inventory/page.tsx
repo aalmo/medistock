@@ -24,6 +24,7 @@ interface InventoryItem {
   stockStatus:         "ok" | "low" | "critical"
   lowStockThreshold:   number
   medicationTags:      string   // JSON array string
+  medicationSubName:   string | null
 }
 
 const STATUS_CONFIG = {
@@ -254,6 +255,9 @@ export default function InventoryPage() {
                           {item.medicationName}
                           {item.medicationStrength && <span className="ml-1 text-xs font-normal text-slate-400">({item.medicationStrength})</span>}
                         </p>
+                        {item.medicationSubName && (
+                          <p className="truncate text-[11px] italic text-slate-400">{item.medicationSubName}</p>
+                        )}
                         <p className="text-xs text-slate-500">{item.patientName}</p>
                       </div>
                     </div>
@@ -335,6 +339,9 @@ export default function InventoryPage() {
                           {item.medicationName}
                           {item.medicationStrength && <span className="ml-1.5 text-xs font-normal text-slate-400">({item.medicationStrength})</span>}
                         </p>
+                        {item.medicationSubName && (
+                          <p className="truncate text-[11px] italic text-slate-400">{item.medicationSubName}</p>
+                        )}
                         <div className="flex flex-wrap items-center gap-1.5">
                           <span className="text-xs text-slate-500">{item.patientName}</span>
                           <TagBadges
