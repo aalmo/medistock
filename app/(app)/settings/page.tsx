@@ -91,20 +91,40 @@ export default function SettingsPage() {
 
   useEffect(() => {
     fetch("/api/settings")
-      .then(r => r.json())
-      .then(d => { if (d.data) setSettings(s => ({ ...s, ...d.data })) })
+      .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.json() })
+      .then(d => {
+        if (d.data) setSettings(s => ({
+          ...s,
+          ...d.data,
+          // Guard against null from DB — keep string fields as strings
+          name: d.data.name ?? s.name,
+        }))
+      })
+      .catch(() => {}) // network / server errors — form stays at defaults
   }, [])
 
   const save = async () => {
     setSaving(true)
     try {
+      // email is read-only — don't send it; also exclude any null/undefined values
+      // so Zod validation doesn't reject fields the user hasn't touched
+      const { email: _email, ...rest } = settings
+      const payload = Object.fromEntries(
+        Object.entries(rest).filter(([k, v]) =>
+          v !== null && v !== undefined && !(k === "name" && v === "")
+        )
+      )
       const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
+        body: JSON.stringify(payload),
       })
-      if (res.ok) toast({ title: "✅ Settings saved!", description: "Your preferences have been updated." })
-      else        toast({ title: "Error saving", variant: "destructive" })
+      if (res.ok) {
+        toast({ title: "✅ Settings saved!", description: "Your preferences have been updated." })
+      } else {
+        const err = await res.json().catch(() => null)
+        toast({ title: "Error saving", description: err?.error ? JSON.stringify(err.error) : undefined, variant: "destructive" })
+      }
     } finally { setSaving(false) }
   }
 
