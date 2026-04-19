@@ -9,6 +9,9 @@ export default withAuth(
     callbacks: {
       authorized: ({ token }) => !!token,
     },
+    pages: {
+      signIn: "/login",
+    },
   }
 )
 
@@ -23,4 +26,3 @@ export const config = {
     "/settings/:path*",
   ],
 }
-
