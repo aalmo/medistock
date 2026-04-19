@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {},
+  // Ensure Prisma's native .node engine binaries are not bundled by webpack
+  serverExternalPackages: ['@prisma/client', 'prisma', 'bcryptjs'],
   // Fix: webpack cache rename race condition on macOS (ENOENT .pack.gz_ -> .pack.gz)
   webpack: (config, { dev }) => {
     if (dev) {
@@ -22,4 +24,3 @@ const nextConfig = {
 }
 
 module.exports = nextConfig
-
