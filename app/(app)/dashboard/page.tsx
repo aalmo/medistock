@@ -11,7 +11,15 @@ import {
 import { AdherenceChart } from "@/components/dashboard/AdherenceChart"
 import { InventoryStatusChart } from "@/components/dashboard/InventoryStatusChart"
 import { format } from "date-fns"
-import { useT } from "@/lib/i18n/context"
+import { enUS, de, ar } from "date-fns/locale"
+import { useT, formatDateLocale } from "@/lib/i18n/context"
+import type { Locale } from "@/lib/i18n/types"
+
+const DATE_FNS_LOCALES: Record<Locale, any> = {
+  en: enUS,
+  de: de,
+  ar: ar,
+}
 
 const UNIT_THEME: Record<string, { iconBg: string; iconColor: string; bar: string; icon: React.ElementType }> = {
   pill:       { iconBg: "bg-violet-100", iconColor: "text-violet-600", bar: "bg-violet-500", icon: Pill },
@@ -93,7 +101,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const today = new Date()
-  const { t } = useT()
+  const { t, locale } = useT()
 
   useEffect(() => {
     fetch("/api/dashboard")
@@ -131,7 +139,7 @@ export default function DashboardPage() {
       <div className="dashboard-surface flex items-center justify-between p-5">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{t.dashboard.title}</h1>
-          <p className="mt-1 text-sm font-medium text-slate-500">{format(today, "EEEE, MMMM d, yyyy")}</p>
+          <p className="mt-1 text-sm font-medium text-slate-500">{formatDateLocale(today, locale)}</p>
         </div>
         <Link href="/patients" className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:-translate-y-px hover:shadow-[0_12px_24px_-12px_rgba(15,23,42,0.35)]">
           {t.common.allPatients} <ArrowRight className="h-3.5 w-3.5" />
@@ -302,9 +310,9 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className={`text-sm font-bold ${theme.iconColor}`}>{format(doseTime, "HH:mm")}</p>
+                    <p className={`text-sm font-bold ${theme.iconColor}`}>{format(doseTime, "HH:mm", { locale: DATE_FNS_LOCALES[locale] })}</p>
                     <p className="text-[10px] text-slate-400">
-                      {isSoon ? `in ${minutesUntil}m` : isToday ? t.common.today : format(doseTime, "MMM d")}
+                      {isSoon ? `in ${minutesUntil}m` : isToday ? t.common.today : format(doseTime, "MMM d", { locale: DATE_FNS_LOCALES[locale] })}
                     </p>
                   </div>
                   <div className="shrink-0">

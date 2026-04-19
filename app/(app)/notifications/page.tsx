@@ -6,7 +6,7 @@ import {
   ShieldAlert, BellOff, MessageSquare
 } from "lucide-react"
 import { formatDateTime } from "@/lib/utils"
-import { useT } from "@/lib/i18n/context"
+import { useT, formatDateLocale } from "@/lib/i18n/context"
 
 interface Notification {
   id:        string
@@ -37,7 +37,7 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading,       setLoading]        = useState(true)
   const [filter,        setFilter]         = useState<"all" | "unread">("all")
-  const { t } = useT()
+  const { t, locale } = useT()
 
   // Build TYPE_CONFIG dynamically from translations
   const TYPE_CONFIG_T = {
@@ -87,7 +87,7 @@ export default function NotificationsPage() {
     const d = new Date(n.createdAt)
     const today     = new Date(); today.setHours(0,0,0,0)
     const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1)
-    const label = d >= today ? t.common.today : d >= yesterday ? t.common.yesterday : d.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })
+    const label = d >= today ? t.common.today : d >= yesterday ? t.common.yesterday : formatDateLocale(d, locale)
     if (!groups[label]) groups[label] = []
     groups[label].push(n)
   })
@@ -200,7 +200,7 @@ export default function NotificationsPage() {
                           )}
                         </div>
                         <p className="text-sm font-medium text-slate-800 leading-snug">{n.message}</p>
-                        <p className="mt-1 text-[11px] font-medium text-slate-400">{formatDateTime(n.createdAt)}</p>
+                        <p className="mt-1 text-[11px] font-medium text-slate-400">{formatDateTime(n.createdAt, locale)}</p>
                       </div>
 
                       {/* Read indicator */}

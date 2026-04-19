@@ -324,7 +324,7 @@ export default function PatientDetailPage() {
                           <div className="mt-2 flex items-center gap-1.5">
                             <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 border border-violet-100 px-2 py-0.5 text-[10px] font-medium text-violet-700">
                               📦 {pkgs.length} {t.patients.packages}
-                              {next && <span className="text-violet-500">· {t.patients.nextExpiry} {new Date(next.expiryDate).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" })}</span>}
+                              {next && <span className="text-violet-500">· {t.patients.nextExpiry} {formatDateLocale(next.expiryDate, locale)}</span>}
                             </span>
                           </div>
                         )

@@ -8,7 +8,15 @@ import {
 } from "lucide-react"
 import { parseJsonArray } from "@/lib/calculations"
 import { format, startOfWeek, addDays, isSameDay, subWeeks, addWeeks } from "date-fns"
+import { enUS, de, ar } from "date-fns/locale"
 import { useT, tFrequencyLabel } from "@/lib/i18n/context"
+import type { Locale } from "@/lib/i18n/types"
+
+const DATE_FNS_LOCALES: Record<Locale, any> = {
+  en: enUS,
+  de: de,
+  ar: ar,
+}
 
 const UNIT_THEME: Record<string, { bg: string; text: string; border: string; icon: React.ElementType }> = {
   pill:       { bg: "bg-violet-50", text: "text-violet-700", border: "border-violet-200", icon: Pill },
@@ -32,7 +40,7 @@ export default function SchedulesPage() {
   const [schedules, setSchedules] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [weekOffset, setWeekOffset] = useState(0)
-  const { t } = useT()
+  const { t, locale } = useT()
 
   useEffect(() => {
     fetch("/api/schedules")
@@ -83,7 +91,7 @@ export default function SchedulesPage() {
         <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4 sm:px-5">
           <div>
             <h2 className="text-sm font-semibold text-slate-900">
-              {format(weekStart, "MMM d")} – {format(addDays(weekStart, 6), "MMM d, yyyy")}
+              {format(weekStart, "MMM d", { locale: DATE_FNS_LOCALES[locale] })} – {format(addDays(weekStart, 6), "MMM d, yyyy", { locale: DATE_FNS_LOCALES[locale] })}
             </h2>
             {weekOffset === 0 && <p className="text-xs text-slate-500">{t.schedules.currentWeek}</p>}
           </div>
@@ -113,11 +121,11 @@ export default function SchedulesPage() {
                 return (
                   <div key={d.toISOString()} className="text-center">
                     <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
-                      {format(d, "EEE")}
+                      {format(d, "EEE", { locale: DATE_FNS_LOCALES[locale] })}
                     </p>
                     <div className={`mx-auto mt-1 flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold
                       ${isToday ? "bg-blue-600 text-white shadow-[0_2px_8px_rgba(59,130,246,0.35)]" : "text-slate-700"}`}>
-                      {format(d, "d")}
+                      {format(d, "d", { locale: DATE_FNS_LOCALES[locale] })}
                     </div>
                   </div>
                 )
@@ -145,7 +153,7 @@ export default function SchedulesPage() {
                       const theme = UNIT_THEME[ev.unitType] ?? UNIT_THEME.pill
                       return (
                         <div key={ev.id}
-                          title={`${ev.patientName}: ${ev.brandName ?? ev.medName}${ev.strength ? ` (${ev.strength})` : ""} at ${format(new Date(ev.scheduledAt), "HH:mm")}`}
+                          title={`${ev.patientName}: ${ev.brandName ?? ev.medName}${ev.strength ? ` (${ev.strength})` : ""} at ${format(new Date(ev.scheduledAt), "HH:mm", { locale: DATE_FNS_LOCALES[locale] })}`}
                           className={`flex cursor-default items-center gap-1 rounded-lg border px-1.5 py-1 text-[10px] font-medium ${theme.bg} ${theme.text} ${theme.border}`}>
                           <StatusIcon status={ev.status} />
                           <span className="truncate leading-none">{ev.brandName ?? ev.medName}</span>

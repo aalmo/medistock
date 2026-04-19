@@ -2,11 +2,19 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { format, differenceInDays, isPast } from "date-fns"
+import { enUS, de, ar } from "date-fns/locale"
 import {
   Package, Plus, Trash2, Pencil, X, Check, ChevronDown, ChevronUp,
   CalendarClock, Boxes, ShieldAlert, Timer, ShieldCheck, Clock4
 } from "lucide-react"
 import { useT } from "@/lib/i18n/context"
+import type { Locale } from "@/lib/i18n/types"
+
+const DATE_FNS_LOCALES: Record<Locale, any> = {
+  en: enUS,
+  de: de,
+  ar: ar,
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────
 interface MedPackage {
@@ -205,7 +213,7 @@ export default function PackagesPage() {
   const [expandedPm,  setExpandedPm]  = useState<string | null>(null)
   const [alertDays,   setAlertDays]   = useState(30)
   const [deleting,    setDeleting]    = useState<string | null>(null)
-  const { t } = useT()
+  const { t, locale } = useT()
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -337,7 +345,7 @@ export default function PackagesPage() {
               <p className="mt-0.5 text-xs font-medium" style={{ color: s.color }}>
                 {s.key === "expired"
                   ? `${t.packages.expired} ${Math.abs(s.days)} ${t.common.daysAgo} — ${t.packages.disposeNow}`
-                  : `${t.packages.expiresIn} ${s.days} ${t.common.days} — ${format(new Date(nextExpiry.expiryDate), "dd MMM yyyy")}`}
+                  : `${t.packages.expiresIn} ${s.days} ${t.common.days} — ${format(new Date(nextExpiry.expiryDate), "dd MMM yyyy", { locale: DATE_FNS_LOCALES[locale] })}`}
               </p>
             </div>
             <CalendarClock className="h-5 w-5 shrink-0" style={{ color: s.color }}/>
@@ -412,7 +420,7 @@ export default function PackagesPage() {
                       .sort((a: MedPackage, b: MedPackage) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime())
                       .map((pkg: MedPackage) => {
                         const s      = getExpStatus(pkg.expiryDate, alertDays)
-                        const expFmt = format(new Date(pkg.expiryDate), "dd MMM yyyy")
+                        const expFmt = format(new Date(pkg.expiryDate), "dd MMM yyyy", { locale: DATE_FNS_LOCALES[locale] })
                         return (
                           <div key={pkg.id} className={`flex items-center gap-4 px-5 py-4 ${s.bg}`}>
                             {/* Days indicator */}

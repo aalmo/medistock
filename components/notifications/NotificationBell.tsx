@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react"
 import { Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { formatDateTime } from "@/lib/utils"
+import { useT } from "@/lib/i18n/context"
 
 interface Notification {
   id: string
@@ -19,6 +19,7 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
+  const { locale } = useT()
 
   const fetchNotifications = async () => {
     try {
@@ -85,7 +86,7 @@ export function NotificationBell() {
                       <div className="flex-1 min-w-0">
                         {n.patient && <p className="font-medium text-xs text-muted-foreground">{n.patient.name}</p>}
                         <p className="text-sm">{n.message}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{formatDateTime(n.createdAt)}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{formatDateTime(n.createdAt, locale)}</p>
                       </div>
                       {!n.read && <div className="w-2 h-2 rounded-full bg-blue-500 mt-1 flex-shrink-0" />}
                     </div>

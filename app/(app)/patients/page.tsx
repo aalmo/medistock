@@ -21,7 +21,7 @@ export default function PatientsPage() {
   const [patients, setPatients] = useState<Patient[]>([])
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
-  const { t } = useT()
+  const { t, locale } = useT()
 
   useEffect(() => {
     fetch("/api/patients")
@@ -102,7 +102,7 @@ export default function PatientsPage() {
                           </span>
                         )}
                       </div>
-                      {patient.dob && <p className="mt-1 text-[11px] text-slate-400">{t.patients.dob}: {formatDate(patient.dob)}</p>}
+                      {patient.dob && <p className="mt-1 text-[11px] text-slate-400">{t.patients.dob}: {formatDate(patient.dob, locale)}</p>}
                     </div>
                   </div>
                   <div className="flex items-center justify-between border-t border-slate-100 pt-3">

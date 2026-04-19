@@ -361,9 +361,15 @@ export function buildExpiryEmail(data: ExpiryEmailData, t: Translation): { subje
 
   const text = [
     `MediStock — Expiry Alert for ${data.patientName}`, ``,
-    ...data.packages.map(p =>
-      `• ${p.medicationName}${p.strength ? ` (${p.strength})` : ""}${p.lotNumber ? ` Lot:${p.lotNumber}` : ""} — ${new Date(p.expiryDate).toLocaleDateString()} (${p.daysLeft <= 0 ? "EXPIRED" : `${p.daysLeft}d left`}) [${p.status.toUpperCase()}]`
-    ),
+    ...data.packages.map(p => {
+      const expDate = new Date(p.expiryDate).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        calendar: 'gregory'
+      })
+      return `• ${p.medicationName}${p.strength ? ` (${p.strength})` : ""}${p.lotNumber ? ` Lot:${p.lotNumber}` : ""} — ${expDate} (${p.daysLeft <= 0 ? "EXPIRED" : `${p.daysLeft}d left`}) [${p.status.toUpperCase()}]`
+    }),
     ``, `Manage: ${appUrl}/packages`,
   ].join("\n")
 
